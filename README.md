@@ -161,20 +161,4 @@ Route guards in `src/components/auth/RoleGuard.jsx` mirror the backend's
 
 ---
 
-## 7. Troubleshooting
-
-**`ORA-12541: TNS:no listener`** — the database isn't running or the port is
-wrong. Check with `lsnrctl status`.
-
-**`ORA-01017: invalid username/password`** — wrong `DB_USER`/`DB_PASSWORD`.
-Note that a password containing `#` will be read as a comment by some `.env`
-parsers; quote it if needed.
-
-**`ORA-00942: table or view does not exist`** — `schema.sql` hasn't been run,
-or it was run as a different schema user than the one in `config/.env`.
-
-**"Invalid role specified" on register** — `seed.sql` hasn't been run.
-
-**Frontend loads but every request fails** — the backend isn't running on port
-5000. Check `curl http://localhost:5000/api/health`.
 
