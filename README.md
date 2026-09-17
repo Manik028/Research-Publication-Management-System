@@ -224,15 +224,5 @@ Encapsulated multi-join analytics into pre-compiled database views for fast cons
 
 ---
 
-## 🚀 Execution & Verification Roadmap
-
-- [x] **Block 1 & 2:** Database Audit, PK/FK Enforcements, & Constraint Verification
-- [ ] **Block 3 & 4:** Schema Normalization & Research Area M:N Integration
-- [ ] **Block 5 & 6:** Project Collaboration & Publication Workflow Lifecycle
-- [ ] **Block 7 & 8:** Funding Calculations & Advanced SQL Analytics Suite
-- [ ] **Block 9 & 10:** Compiled Views & PL/SQL Stored Procedures/Functions
-- [ ] **Block 11 & 12:** Automated Triggers & Transaction/Concurrency Controls
-- [ ] **Block 13 & 14:** Security Audit Trail & Rich Fictional Demo Dataset
-- [ ] **Block 15 & 16:** API Integration & Live Database-Driven Frontend Dashboards
 
 
