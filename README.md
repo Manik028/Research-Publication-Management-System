@@ -1,3 +1,15 @@
+# 🗄️ Research Project Management System (RPMS) — Oracle Database Architecture
+
+> **Transforming a standard relational backend into an enterprise-grade Oracle DBMS with native procedural integrity, auditability, and real-time analytics.**
+
+---
+
+## 🏛️ System Architecture
+
+
+
+
+
 # RPMS — Research & Publication Management System
 
 Full-stack application: React (Vite) frontend + Express/Node backend on Oracle Database.
