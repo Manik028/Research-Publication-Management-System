@@ -1,13 +1,3 @@
-# 🗄️ Research Project Management System (RPMS) — Oracle Database Architecture
-
-> **Transforming a standard relational backend into an enterprise-grade Oracle DBMS with native procedural integrity, auditability, and real-time analytics.**
-
----
-
-## 🏛️ System Architecture
-
-
-
 
 
 # RPMS — Research & Publication Management System
@@ -172,5 +162,77 @@ Route guards in `src/components/auth/RoleGuard.jsx` mirror the backend's
 `authorizeRole` middleware, so the UI never offers a page the API would reject.
 
 ---
+
+
+---
+
+## 🎯 Engineering Objectives & Database Enhancements
+
+### 1. 📐 Data Modeling & Normalization
+* **Strict Normalization (1NF to BCNF):** Standardized entity schemas across 15 core tables, eliminating partial/transitive dependencies and multi-valued attributes.
+* **Many-to-Many (M:N) Relationship Refactoring:** Properly decoupled entities through bridge tables for multi-domain mappings:
+  * `USER` ↔ `RESEARCH_AREA` via `USER_RESEARCH_AREA`
+  * `PUBLICATION` ↔ `RESEARCH_AREA` via `PUBLICATION_RESEARCH_AREA`
+  * `PROJECT` ↔ `USER` via `PROJECT_MEMBER` (with explicit role tracking and join dates)
+
+### 2. 🔐 Schema Integrity & Relational Rules
+* **Declarative Constraints:** Applied strict `PRIMARY KEY`, `FOREIGN KEY` (with standard cascade/nullification rules), `UNIQUE`, `NOT NULL`, and `CHECK` constraints across all tables.
+* **Workflow Transition Guards:** Utilized `CHECK` constraints and PL/SQL state machine logic to enforce valid lifecycle transitions for publications:
+  $$\text{Draft} \longrightarrow \text{Submitted} \longrightarrow \text{Under Review} \longrightarrow \text{Accepted/Rejected} \longrightarrow \text{Published}$$
+
+### 3. ⚡ Advanced SQL & Analytic Engines
+Implemented a dedicated query suite (`database/advanced_queries.sql`) leveraging native Oracle analytical and transactional capabilities:
+* **Complex Multi-Table Joins:** Inner, Outer, Self, and Cross joins to aggregate collaboration networks.
+* **Analytical Window Functions:** `ROW_NUMBER()`, `RANK()`, `DENSE_RANK()`, `LAG()`, and `LEAD()` with `PARTITION BY` clauses for productivity trend metrics.
+* **Subqueries & Set Operations:** Correlated subqueries, `EXISTS`/`NOT EXISTS`, `UNION ALL`, `INTERSECT`, and `MINUS` operations for deep domain filtering.
+
+### 4. ⚙️ Database-Level Business Logic (PL/SQL)
+Shifted core application rules from the API layer into compiled Oracle PL/SQL modules to guarantee data integrity across any consumer interface:
+* **Stored Procedures:** Autonomous execution blocks for critical actions (`ASSIGN_REVIEWER`, `SUBMIT_REVIEW`, `APPROVE_PUBLICATION`, `ADD_PROJECT_GRANT`).
+* **Stored Functions:** Deterministic database functions to calculate metrics on-demand (e.g., Researcher Productivity Index, Total Funding Aggregations).
+* **Database Triggers:**
+  * **Event Notification Triggers:** Automatically generate system alerts upon key state changes (e.g., `REVIEW` completion).
+  * **Validation Triggers:** Enforce business constraints prior to `INSERT`/`UPDATE` operations.
+
+### 5. 📊 Native Reporting Views
+Encapsulated multi-join analytics into pre-compiled database views for fast consumption by the Express API dashboard endpoints:
+* `V_PUBLICATION_DETAILS` — Comprehensive metadata per research output.
+* `V_RESEARCHER_STATISTICS` — Real-time productivity metrics per academic user.
+* `V_PROJECT_FUNDING` — Active grant allocations, spent funds, and remaining budgets.
+* `V_DASHBOARD_SUMMARY` — System-wide operational stats driving the React dashboard.
+
+### 6. 🛡️ Enterprise Audit & Security Framework
+* **Centralized Audit Trail (`AUDIT_LOG`):** Automated trigger-based auditing tracking `WHO`, `WHAT`, and `WHEN` across critical tables (`USER`, `PUBLICATION`, `REVIEW`, `GRANT_FUNDING`).
+* **Field-Level Diffing:** Stores `OLD_VALUE` and `NEW_VALUE` states per transaction.
+* **Zero-Trust Security:** Explicit exclusion of sensitive artifacts (plaintext passwords, OTPs, tokens, secrets) from all logging mechanisms.
+
+### 7. 🔄 Transaction Control & Concurrency
+* **ACID Guarantees:** Multi-statement operations wrapped in explicit transaction blocks utilizing `COMMIT` and `ROLLBACK` safety nets.
+* **Row-Level Locking:** Targeted implementation of `SELECT ... FOR UPDATE` to resolve race conditions during concurrent reviewer assignments and status transitions.
+
+---
+
+## 📈 Database Capability Matrix
+
+| Feature Domain | Implementation Mechanism | System Impact |
+| :--- | :--- | :--- |
+| **Data Integrity** | Foreign Keys, `CHECK` Constraints, Domain Rules | Zero orphaned records or invalid entity states |
+| **Business Logic** | PL/SQL Stored Procedures & Functions | Single source of truth at DB level |
+| **Automation** | Database Triggers | Real-time event tracking & automatic audit logging |
+| **Performance** | B-Tree Indexes & Pre-compiled Views | Sub-millisecond aggregation queries for UI dashboards |
+| **Auditability** | `AUDIT_LOG` + System Triggers | Complete mutation history with delta capture |
+
+---
+
+## 🚀 Execution & Verification Roadmap
+
+- [x] **Block 1 & 2:** Database Audit, PK/FK Enforcements, & Constraint Verification
+- [ ] **Block 3 & 4:** Schema Normalization & Research Area M:N Integration
+- [ ] **Block 5 & 6:** Project Collaboration & Publication Workflow Lifecycle
+- [ ] **Block 7 & 8:** Funding Calculations & Advanced SQL Analytics Suite
+- [ ] **Block 9 & 10:** Compiled Views & PL/SQL Stored Procedures/Functions
+- [ ] **Block 11 & 12:** Automated Triggers & Transaction/Concurrency Controls
+- [ ] **Block 13 & 14:** Security Audit Trail & Rich Fictional Demo Dataset
+- [ ] **Block 15 & 16:** API Integration & Live Database-Driven Frontend Dashboards
 
 
