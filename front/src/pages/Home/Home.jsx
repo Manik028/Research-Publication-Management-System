@@ -27,7 +27,7 @@ function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-base-200">
+    <main className="min-h-screen bg-slate-50">
 
       {/* =========================
           HERO SECTION
@@ -48,7 +48,7 @@ function Home() {
           ========================== */}
           <div>
 
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-2 text-sm font-medium text-primary">
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-2 text-sm font-medium text-indigo-600">
 
               <Sparkles size={16} />
 
@@ -61,7 +61,7 @@ function Home() {
 
               Discover, Submit &
 
-              <span className="block text-primary">
+              <span className="block text-indigo-600">
                 Manage Academic
               </span>
 
@@ -70,7 +70,7 @@ function Home() {
             </h2>
 
 
-            <p className="mt-7 max-w-2xl text-base leading-7 text-base-content/65 md:text-lg">
+            <p className="mt-7 max-w-2xl text-base leading-7 text-slate-500 md:text-lg">
 
               A centralized platform for researchers to discover
               publications, submit research, collaborate with
@@ -82,13 +82,13 @@ function Home() {
             {/* Search */}
             <form onSubmit={handleSearch} className="mt-8 max-w-2xl">
 
-              <div className="flex flex-col gap-3 rounded-2xl border border-base-300 bg-base-100 p-2 shadow-xl shadow-base-content/5 sm:flex-row">
+              <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-2 shadow-xl shadow-base-content/5 sm:flex-row">
 
                 <div className="flex flex-1 items-center gap-3 px-3">
 
                   <Search
                     size={20}
-                    className="shrink-0 text-base-content/40"
+                    className="shrink-0 text-slate-400"
                   />
 
                   <input
@@ -118,11 +118,11 @@ function Home() {
             {/* Feature highlights */}
             <div className="mt-8 flex flex-wrap gap-3">
 
-              <div className="flex items-center gap-2 rounded-full border border-base-300 bg-base-100 px-4 py-2 text-sm">
+              <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm">
 
                 <BookOpen
                   size={16}
-                  className="text-primary"
+                  className="text-indigo-600"
                 />
 
                 Discover Research
@@ -130,11 +130,11 @@ function Home() {
               </div>
 
 
-              <div className="flex items-center gap-2 rounded-full border border-base-300 bg-base-100 px-4 py-2 text-sm">
+              <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm">
 
                 <Upload
                   size={16}
-                  className="text-primary"
+                  className="text-indigo-600"
                 />
 
                 Submit Publications
@@ -142,11 +142,11 @@ function Home() {
               </div>
 
 
-              <div className="flex items-center gap-2 rounded-full border border-base-300 bg-base-100 px-4 py-2 text-sm">
+              <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm">
 
                 <Users
                   size={16}
-                  className="text-primary"
+                  className="text-indigo-600"
                 />
 
                 Collaborate
@@ -168,11 +168,11 @@ function Home() {
 
 
             {/* Application preview */}
-            <div className="relative overflow-hidden rounded-3xl border border-base-300 bg-base-100 shadow-2xl">
+            <div className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl">
 
 
               {/* Fake browser header */}
-              <div className="flex items-center justify-between border-b border-base-300 px-5 py-4">
+              <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
 
                 <div className="flex items-center gap-2">
 
@@ -182,7 +182,7 @@ function Home() {
 
                 </div>
 
-                <span className="text-xs text-base-content/40">
+                <span className="text-xs text-slate-400">
                   rpms
                 </span>
 
@@ -199,7 +199,7 @@ function Home() {
 
                   <div>
 
-                    <p className="text-xs font-medium text-base-content/50">
+                    <p className="text-xs font-medium text-slate-400">
                       RESEARCH WORKSPACE
                     </p>
 
@@ -210,7 +210,7 @@ function Home() {
                   </div>
 
 
-                  <div className="rounded-xl bg-primary/10 p-3 text-primary">
+                  <div className="rounded-xl bg-primary/10 p-3 text-indigo-600">
                     <Sparkles size={20} />
                   </div>
 
@@ -263,9 +263,9 @@ function Home() {
                 {/* Feature cards */}
                 <div className="mt-5 grid grid-cols-2 gap-3">
 
-                  <div className="rounded-2xl border border-base-300 bg-base-200 p-4">
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
 
-                    <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-base-100 text-primary">
+                    <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-white text-indigo-600">
 
                       <FileText size={18} />
 
@@ -275,16 +275,16 @@ function Home() {
                       Submit
                     </p>
 
-                    <p className="mt-1 text-xs text-base-content/50">
+                    <p className="mt-1 text-xs text-slate-400">
                       Manage your research submissions
                     </p>
 
                   </div>
 
 
-                  <div className="rounded-2xl border border-base-300 bg-base-200 p-4">
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
 
-                    <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-base-100 text-primary">
+                    <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-white text-indigo-600">
 
                       <CheckCircle2 size={18} />
 
@@ -294,7 +294,7 @@ function Home() {
                       Peer Review
                     </p>
 
-                    <p className="mt-1 text-xs text-base-content/50">
+                    <p className="mt-1 text-xs text-slate-400">
                       Participate in research review
                     </p>
 
@@ -304,19 +304,19 @@ function Home() {
 
 
                 {/* Bottom status */}
-                <div className="mt-5 flex items-center justify-between rounded-xl border border-base-300 px-4 py-3">
+                <div className="mt-5 flex items-center justify-between rounded-xl border border-slate-200 px-4 py-3">
 
                   <div className="flex items-center gap-2">
 
                     <span className="h-2 w-2 rounded-full bg-success" />
 
-                    <span className="text-xs text-base-content/60">
+                    <span className="text-xs text-slate-500">
                       Research platform
                     </span>
 
                   </div>
 
-                  <span className="text-xs font-medium text-base-content/50">
+                  <span className="text-xs font-medium text-slate-400">
                     RPMS
                   </span>
 
@@ -328,7 +328,7 @@ function Home() {
 
 
             {/* Floating card */}
-            <div className="absolute -bottom-6 -left-8 hidden w-52 rounded-2xl border border-base-300 bg-base-100 p-4 shadow-xl xl:block">
+            <div className="absolute -bottom-6 -left-8 hidden w-52 rounded-2xl border border-slate-200 bg-white p-4 shadow-xl xl:block">
 
               <div className="flex items-center gap-3">
 
@@ -344,7 +344,7 @@ function Home() {
                     Research workflow
                   </p>
 
-                  <p className="text-xs text-base-content/50">
+                  <p className="text-xs text-slate-400">
                     Discover → Submit → Review
                   </p>
 
@@ -364,13 +364,13 @@ function Home() {
       {/* =========================
           SIMPLE BOTTOM SECTION
       ========================== */}
-      <section className="border-t border-base-300 bg-base-100">
+      <section className="border-t border-slate-200 bg-white">
 
         <div className="mx-auto grid max-w-7xl gap-6 px-5 py-12 sm:grid-cols-3 lg:px-8">
 
           <div className="flex gap-4">
 
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-indigo-600">
 
               <BookOpen size={20} />
 
@@ -382,7 +382,7 @@ function Home() {
                 Discover
               </h3>
 
-              <p className="mt-1 text-sm leading-6 text-base-content/55">
+              <p className="mt-1 text-sm leading-6 text-slate-500">
                 Explore academic publications and research.
               </p>
 
@@ -393,7 +393,7 @@ function Home() {
 
           <div className="flex gap-4">
 
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-indigo-600">
 
               <Upload size={20} />
 
@@ -405,7 +405,7 @@ function Home() {
                 Submit
               </h3>
 
-              <p className="mt-1 text-sm leading-6 text-base-content/55">
+              <p className="mt-1 text-sm leading-6 text-slate-500">
                 Submit and manage your research publications.
               </p>
 
@@ -416,7 +416,7 @@ function Home() {
 
           <div className="flex gap-4">
 
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-indigo-600">
 
               <Users size={20} />
 
@@ -428,7 +428,7 @@ function Home() {
                 Collaborate
               </h3>
 
-              <p className="mt-1 text-sm leading-6 text-base-content/55">
+              <p className="mt-1 text-sm leading-6 text-slate-500">
                 Work with researchers and co-authors.
               </p>
 
@@ -444,9 +444,9 @@ function Home() {
       {/* =========================
           FOOTER
       ========================== */}
-      <footer className="border-t border-base-300 bg-base-100">
+      <footer className="border-t border-slate-200 bg-white">
 
-        <div className="mx-auto flex max-w-7xl flex-col gap-2 px-5 py-7 text-sm text-base-content/50 sm:flex-row sm:items-center sm:justify-between lg:px-8">
+        <div className="mx-auto flex max-w-7xl flex-col gap-2 px-5 py-7 text-sm text-slate-400 sm:flex-row sm:items-center sm:justify-between lg:px-8">
 
           <p>
             © 2026 RPMS — Research & Publication Management System

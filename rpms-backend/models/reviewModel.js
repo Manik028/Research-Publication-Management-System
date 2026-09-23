@@ -40,36 +40,40 @@ const ReviewModel = {
         return result.rows[0];
     },
 
+    // Calls the ASSIGN_REVIEWER procedure (database/transactions.sql) instead
+    // of a raw INSERT — Oracle now validates that the publication and
+    // reviewer both exist, the reviewer isn't one of the paper's own
+    // authors, the deadline is in the future, there's no duplicate
+    // assignment, and the 3-reviewer cap isn't exceeded (with row locking
+    // to close the race condition two near-simultaneous calls could hit).
+    // Any violation raises a custom ORA-2000x error, which the controller
+    // translates into a clean 400 response.
     createReview: async (publicationId, reviewerId, deadline) => {
-        const sql = `
-            INSERT INTO REVIEW (PUBLICATION_ID, REVIEWER_ID, DEADLINE, STATUS)
-            VALUES (:publicationId, :reviewerId, TO_DATE(:deadline, 'YYYY-MM-DD'), 'Pending')
-        `;
-        const result = await executeQuery(sql, { publicationId, reviewerId, deadline });
-        return result.rowsAffected;
+        await executeQuery(
+            `BEGIN ASSIGN_REVIEWER(:publicationId, :reviewerId, TO_DATE(:deadline, 'YYYY-MM-DD')); END;`,
+            { publicationId, reviewerId, deadline }
+        );
     },
 
-    submitReview: async (reviewId, score, originality, recommendation, authorComments, editorComments) => {
-        const sql = `
-            UPDATE REVIEW
-            SET SCORE                  = :score,
-                ORIGINALITY            = :originality,
-                OVERALL_RECOMMENDATION = :recommendation,
-                COMMENTS_AUTHOR        = :authorComments,
-                COMMENTS_EDITOR        = :editorComments,
-                STATUS                 = 'Completed'
-            WHERE REVIEW_ID = :reviewId
-        `;
-        const result = await executeQuery(sql, {
-            score,
-            originality,
-            recommendation: recommendation || null,
-            authorComments: authorComments || null,
-            editorComments: editorComments || null,
-            reviewId,
-        });
-        return result.rowsAffected;
+    // Calls SUBMIT_REVIEW (database/procedures_functions.sql) instead of a
+    // raw UPDATE — Oracle now re-validates ownership and status itself
+    // (defense in depth: even if a future code path bypasses the
+    // controller's own checks below, the database still won't allow it).
+    submitReview: async (reviewId, reviewerId, score, originality, recommendation, authorComments, editorComments) => {
+        await executeQuery(
+            `BEGIN SUBMIT_REVIEW(:reviewId, :reviewerId, :score, :originality, :recommendation, :authorComments, :editorComments); END;`,
+            {
+                reviewId,
+                reviewerId,
+                score,
+                originality,
+                recommendation: recommendation || null,
+                authorComments: authorComments || null,
+                editorComments: editorComments || null,
+            }
+        );
     },
 };
 
 module.exports = ReviewModel;
+

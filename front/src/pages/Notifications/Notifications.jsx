@@ -46,7 +46,7 @@ export default function Notifications() {
   return (
     <div className="mx-auto max-w-4xl p-8">
       <h1 className="mb-6 text-3xl font-bold flex items-center gap-3">
-        <Bell size={28} className="text-primary"/> Notifications
+        <Bell size={28} className="text-indigo-600"/> Notifications
       </h1>
 
       {error && (
@@ -57,9 +57,9 @@ export default function Notifications() {
 
       <div className="flex flex-col gap-3">
         {notifications.map(notif => (
-          <div key={notif.ID} className={`flex items-start justify-between rounded-xl border p-4 ${notif.IS_READ ? 'border-base-200 bg-base-50 opacity-70' : 'border-primary/20 bg-base-100 shadow-sm'}`}>
+          <div key={notif.ID} className={`flex items-start justify-between rounded-xl border p-4 ${notif.IS_READ ? 'border-slate-100 bg-slate-50 opacity-70' : 'border-primary/20 bg-white shadow-sm'}`}>
             <div>
-              <p className="text-xs font-bold uppercase tracking-wider text-primary">{notif.CATEGORY}</p>
+              <p className="text-xs font-bold uppercase tracking-wider text-indigo-600">{notif.CATEGORY}</p>
               <p className="mt-1 text-sm text-slate-800">{notif.MESSAGE}</p>
             </div>
             {!notif.IS_READ && (
@@ -69,9 +69,9 @@ export default function Notifications() {
             )}
           </div>
         ))}
-        {isLoading && <p className="text-base-content/50">Loading notifications...</p>}
+        {isLoading && <p className="text-slate-400">Loading notifications...</p>}
         {!isLoading && notifications.length === 0 && (
-          <p className="text-base-content/50">No notifications.</p>
+          <p className="text-slate-400">No notifications.</p>
         )}
       </div>
     </div>

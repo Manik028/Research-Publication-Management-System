@@ -111,16 +111,16 @@ function Projects() {
       {/* =====================================================
           HEADER
       ====================================================== */}
-      <section className="rounded-2xl bg-base-100 p-6 shadow-sm">
+      <section className="rounded-2xl bg-white p-6 shadow-sm">
         <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-center">
           <div>
-            <p className="mb-2 text-sm font-semibold text-primary">
+            <p className="mb-2 text-sm font-semibold text-indigo-600">
               Research Workspace
             </p>
             <h1 className="text-3xl font-bold tracking-tight">
               Research Projects
             </h1>
-            <p className="mt-2 text-sm text-base-content/60">
+            <p className="mt-2 text-sm text-slate-500">
               Create, organize and manage your research projects.
             </p>
           </div>
@@ -138,11 +138,11 @@ function Projects() {
       {/* =====================================================
           SEARCH
       ====================================================== */}
-      <section className="rounded-2xl bg-base-100 p-4 shadow-sm">
+      <section className="rounded-2xl bg-white p-4 shadow-sm">
         <div className="relative">
           <Search
             size={19}
-            className="absolute left-4 top-1/2 -translate-y-1/2 text-base-content/40"
+            className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
           />
           <input
             type="text"
@@ -157,14 +157,14 @@ function Projects() {
       {/* =====================================================
           PROJECTS
       ====================================================== */}
-      <section className="rounded-2xl bg-base-100 shadow-sm">
-        <div className="border-b border-base-300 p-6">
+      <section className="rounded-2xl bg-white shadow-sm">
+        <div className="border-b border-slate-200 p-6">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-xl font-bold">
                 Your Projects
               </h2>
-              <p className="mt-1 text-sm text-base-content/60">
+              <p className="mt-1 text-sm text-slate-500">
                 Research projects associated with your account.
               </p>
             </div>
@@ -183,12 +183,12 @@ function Projects() {
         )}
 
         {isLoading ? (
-          <div className="flex min-h-[350px] items-center justify-center px-6 text-center text-sm text-base-content/60">
+          <div className="flex min-h-[350px] items-center justify-center px-6 text-center text-sm text-slate-500">
             Loading projects from database...
           </div>
         ) : filteredProjects.length === 0 ? (
           <div className="flex min-h-[350px] flex-col items-center justify-center px-6 text-center">
-            <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+            <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-indigo-600">
               <FolderKanban size={30} />
             </div>
 
@@ -196,7 +196,7 @@ function Projects() {
               No projects yet
             </h3>
 
-            <p className="mt-2 max-w-md text-sm leading-6 text-base-content/60">
+            <p className="mt-2 max-w-md text-sm leading-6 text-slate-500">
               You haven't created any research projects yet.
               Your projects will appear here once you add them
               to the system.
@@ -213,18 +213,18 @@ function Projects() {
         ) : (
           <div className="grid gap-4 p-6 sm:grid-cols-2 lg:grid-cols-3">
             {filteredProjects.map((proj) => (
-              <div key={proj.ID} className="flex flex-col justify-between rounded-xl border border-base-300 p-5 shadow-sm">
+              <div key={proj.ID} className="flex flex-col justify-between rounded-xl border border-slate-200 p-5 shadow-sm">
                 <div>
                   <h3 className="font-bold text-lg">{proj.TITLE}</h3>
-                  <div className="mt-3 space-y-1 text-sm text-base-content/70">
-                    <p>Status: <span className="font-medium text-primary">{proj.STATUS}</span></p>
+                  <div className="mt-3 space-y-1 text-sm text-slate-600">
+                    <p>Status: <span className="font-medium text-indigo-600">{proj.STATUS}</span></p>
                     <p>Timeline: {proj.TIMELINE || 'N/A'}</p>
                     <p>Budget: ${Number(proj.BUDGET || 0).toLocaleString()}</p>
                     <p>Manager: {proj.MANAGER_NAME || 'Unknown'}</p>
                   </div>
                 </div>
                 {canDelete(proj) && (
-                  <div className="mt-4 flex justify-end border-t border-base-200 pt-3">
+                  <div className="mt-4 flex justify-end border-t border-slate-100 pt-3">
                     <button onClick={() => handleDeleteProject(proj.ID)} className="btn btn-ghost btn-sm text-error gap-1">
                       <Trash2 size={16}/> Delete
                     </button>
@@ -241,7 +241,7 @@ function Projects() {
       ====================================================== */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <form onSubmit={handleAddProject} className="w-full max-w-md rounded-2xl bg-base-100 p-6 shadow-xl">
+          <form onSubmit={handleAddProject} className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
             <h2 className="mb-4 text-xl font-bold">Create New Project</h2>
 
             {formError && (

@@ -18,13 +18,42 @@ const UserModel = {
     getUserByEmail: async (email) => {
         const sql = `
             SELECT u.USER_ID AS ID, u.FULL_NAME, u.EMAIL, u.PASSWORD, u.DEPARTMENT,
-                   u.ORCID, u.TWO_FACTOR_ENABLED, u.ROLE_ID, r.ROLE_NAME AS ROLE
+                   u.ORCID, u.TWO_FACTOR_ENABLED, u.ROLE_ID, u.PASSWORD_CHANGED_AT,
+                   r.ROLE_NAME AS ROLE
             FROM "USER" u
             LEFT JOIN "ROLE" r ON u.ROLE_ID = r.ROLE_ID
             WHERE LOWER(u.EMAIL) = LOWER(:email)
         `;
         const result = await executeQuery(sql, { email });
         return result.rows[0];
+    },
+
+    // Used by the JWT-invalidation check in authMiddleware — needs to be
+    // cheap (one column) since it runs on every authenticated request.
+    getPasswordChangedAt: async (userId) => {
+        const result = await executeQuery(
+            `SELECT PASSWORD_CHANGED_AT FROM "USER" WHERE USER_ID = :userId`,
+            { userId }
+        );
+        return result.rows[0]?.PASSWORD_CHANGED_AT || null;
+    },
+
+    // Calls the RESET_PASSWORD procedure (database/password_security.sql)
+    // instead of a raw UPDATE, so the password hash and PASSWORD_CHANGED_AT
+    // are bumped together, atomically, on the database side.
+    resetPassword: async (userId, newPasswordHash) => {
+        await executeQuery(
+            `BEGIN RESET_PASSWORD(:userId, :newPasswordHash); END;`,
+            { userId, newPasswordHash }
+        );
+    },
+
+    setTwoFactorEnabled: async (userId, enabled) => {
+        const result = await executeQuery(
+            `UPDATE "USER" SET TWO_FACTOR_ENABLED = :enabled WHERE USER_ID = :userId`,
+            { enabled: enabled ? 1 : 0, userId }
+        );
+        return result.rowsAffected;
     },
 
     getAllUsers: async () => {

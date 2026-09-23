@@ -1,4 +1,5 @@
 const ReviewModel = require('../models/reviewModel');
+const { isPlsqlBusinessError, cleanPlsqlMessage } = require('../utils/plsqlErrors');
 
 const getMyReviews = async (req, res) => {
     try {
@@ -56,6 +57,7 @@ const submitReview = async (req, res) => {
 
         await ReviewModel.submitReview(
             reviewId,
+            reviewerId,
             numericScore,
             numericOriginality,
             recommendation || null,
@@ -71,6 +73,9 @@ const submitReview = async (req, res) => {
             data: updated,
         });
     } catch (error) {
+        if (isPlsqlBusinessError(error)) {
+            return res.status(400).json({ success: false, message: cleanPlsqlMessage(error) });
+        }
         console.error('Error submitting review:', error);
         return res.status(500).json({ success: false, message: 'Internal server error' });
     }
@@ -91,6 +96,16 @@ const assignReview = async (req, res) => {
         await ReviewModel.createReview(Number(publicationId), Number(reviewerId), deadline);
         return res.status(201).json({ success: true, message: 'Review assigned successfully' });
     } catch (error) {
+        // ASSIGN_REVIEWER (database/transactions.sql) is what actually
+        // catches: publication/reviewer not existing, the reviewer being
+        // one of the paper's own authors (-20003), a past deadline
+        // (-20004), a duplicate assignment (-20005), and the 3-reviewer
+        // cap (-20006). All of those now surface as a clean 400 instead
+        // of a raw 500, and none of them could be bypassed even by a
+        // request that skips the frontend entirely.
+        if (isPlsqlBusinessError(error)) {
+            return res.status(400).json({ success: false, message: cleanPlsqlMessage(error) });
+        }
         console.error('Error assigning review:', error);
         return res.status(500).json({ success: false, message: 'Internal server error' });
     }

@@ -57,7 +57,7 @@ export default function Institutions() {
   return (
     <div className="p-8">
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-3xl font-bold flex items-center gap-3"><Building2 className="text-primary"/> Institutions</h1>
+        <h1 className="text-3xl font-bold flex items-center gap-3"><Building2 className="text-indigo-600"/> Institutions</h1>
         {(role === 'Admin' || role === 'Manager') && (
           <button onClick={() => setIsModalOpen(true)} className="btn btn-primary"><Plus size={18}/> Add Institution</button>
         )}
@@ -69,19 +69,19 @@ export default function Institutions() {
         </div>
       )}
 
-      {isLoading && <p className="text-base-content/50">Loading institutions...</p>}
+      {isLoading && <p className="text-slate-400">Loading institutions...</p>}
 
       {!isLoading && institutions.length === 0 && !error && (
-        <p className="text-base-content/50">No institutions have been added yet.</p>
+        <p className="text-slate-400">No institutions have been added yet.</p>
       )}
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {institutions.map(inst => (
-          <div key={inst.ID} className="rounded-xl border border-base-300 bg-base-100 p-5 shadow-sm">
+          <div key={inst.ID} className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
             <h3 className="font-bold text-lg">{inst.NAME}</h3>
-            <p className="mt-1 text-sm text-base-content/60">Country: {inst.COUNTRY}</p>
+            <p className="mt-1 text-sm text-slate-500">Country: {inst.COUNTRY}</p>
             {inst.WEBSITE && (
-              <a href={inst.WEBSITE} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-1 text-sm text-primary hover:underline">
+              <a href={inst.WEBSITE} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-1 text-sm text-indigo-600 hover:underline">
                 <Globe size={14}/> Visit Website
               </a>
             )}
@@ -91,7 +91,7 @@ export default function Institutions() {
 
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <form onSubmit={handleCreate} className="w-full max-w-md rounded-2xl bg-base-100 p-6">
+          <form onSubmit={handleCreate} className="w-full max-w-md rounded-2xl bg-white p-6">
             <h2 className="mb-4 text-xl font-bold">Add Institution</h2>
             <input type="text" placeholder="Institution Name" required className="input input-bordered mb-3 w-full"
               value={formData.name}

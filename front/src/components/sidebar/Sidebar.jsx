@@ -116,7 +116,7 @@ function Sidebar() {
 
       <button
         onClick={() => setMobileOpen(true)}
-        className="fixed left-4 top-4 z-40 flex h-10 w-10 items-center justify-center rounded-xl border border-base-300 bg-base-100 shadow-lg lg:hidden"
+        className="fixed left-4 top-4 z-40 flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white shadow-lg lg:hidden"
         aria-label="Open sidebar"
       >
         <Menu size={21} />
@@ -150,8 +150,8 @@ function Sidebar() {
           w-72
           flex-col
           border-r
-          border-base-300
-          bg-base-100
+          border-slate-200
+          bg-white
           transition-transform
           duration-300
 
@@ -169,7 +169,7 @@ function Sidebar() {
             SIDEBAR HEADER
         ========================================= */}
 
-        <div className="flex h-20 items-center justify-between border-b border-base-300 px-5">
+        <div className="flex h-20 items-center justify-between border-b border-slate-200 px-5">
 
           <div className="flex items-center gap-3">
 
@@ -186,7 +186,7 @@ function Sidebar() {
                 RPMS
               </h1>
 
-              <p className="text-[10px] font-medium text-base-content/50">
+              <p className="text-[10px] font-medium text-slate-400">
                 Research Management
               </p>
 
@@ -214,7 +214,7 @@ function Sidebar() {
 
         <div className="flex-1 overflow-y-auto px-4 py-6">
 
-          <p className="mb-3 px-3 text-xs font-semibold uppercase tracking-wider text-base-content/40">
+          <p className="mb-3 px-3 text-xs font-semibold uppercase tracking-wider text-slate-400">
             Main Menu
           </p>
 
@@ -247,7 +247,7 @@ function Sidebar() {
                     ${
                       isActive
                         ? 'bg-primary text-primary-content shadow-md shadow-primary/20'
-                        : 'text-base-content/70 hover:bg-base-200 hover:text-base-content'
+                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                     }
                     `
                   }
@@ -274,7 +274,7 @@ function Sidebar() {
 
           {managementNavigationItems.length > 0 && (
             <>
-              <p className="mb-3 mt-8 px-3 text-xs font-semibold uppercase tracking-wider text-base-content/40">
+              <p className="mb-3 mt-8 px-3 text-xs font-semibold uppercase tracking-wider text-slate-400">
                 Management
               </p>
 
@@ -306,7 +306,7 @@ function Sidebar() {
                               : 'bg-primary text-primary-content shadow-md shadow-primary/20'
                             : item.isError
                               ? 'text-error hover:bg-error/10'
-                              : 'text-base-content/70 hover:bg-base-200 hover:text-base-content'
+                              : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                         }
                         `
                       }
@@ -325,7 +325,7 @@ function Sidebar() {
               ACCOUNT
           ========================================= */}
 
-          <p className="mb-3 mt-8 px-3 text-xs font-semibold uppercase tracking-wider text-base-content/40">
+          <p className="mb-3 mt-8 px-3 text-xs font-semibold uppercase tracking-wider text-slate-400">
             Account
           </p>
 
@@ -352,7 +352,7 @@ function Sidebar() {
                 ${
                   isActive
                     ? 'bg-primary text-primary-content shadow-md shadow-primary/20'
-                    : 'text-base-content/70 hover:bg-base-200 hover:text-base-content'
+                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                 }
                 `
               }
@@ -387,7 +387,7 @@ function Sidebar() {
                 ${
                   isActive
                     ? 'bg-primary text-primary-content shadow-md shadow-primary/20'
-                    : 'text-base-content/70 hover:bg-base-200 hover:text-base-content'
+                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                 }
                 `
               }
@@ -410,11 +410,11 @@ function Sidebar() {
             USER INFO & LOGOUT FOOTER
         ========================================= */}
 
-        <div className="border-t border-base-300 p-4 bg-base-200/50">
+        <div className="border-t border-slate-200 p-4 bg-slate-50/50">
           <div className="mb-2 px-3 py-1 flex items-center justify-between">
             <div className="truncate">
               <p className="text-sm font-bold truncate">{user?.FULL_NAME || 'User'}</p>
-              <p className="text-xs text-base-content/60 capitalize">Role: {role || 'Researcher'}</p>
+              <p className="text-xs text-slate-500 capitalize">Role: {role || 'Researcher'}</p>
             </div>
             <span className="badge badge-sm badge-outline font-mono">v1.0</span>
           </div>

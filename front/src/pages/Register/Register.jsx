@@ -115,13 +115,24 @@ function Register() {
 
 
     // =========================================
-    // PASSWORD LENGTH
+    // PASSWORD POLICY (must match backend utils/passwordPolicy.js)
     // =========================================
 
-    if (password.length < 6) {
+    if (password.length < 8) {
 
       setError(
-        'Password must contain at least 6 characters.'
+        'Password must be at least 8 characters.'
+      )
+
+      setIsLoading(false)
+
+      return
+    }
+
+    if (!/[a-z]/.test(password) || !/[A-Z]/.test(password) || !/[0-9]/.test(password) || !/[^A-Za-z0-9]/.test(password)) {
+
+      setError(
+        'Password must include an uppercase letter, a lowercase letter, a number and a special character.'
       )
 
       setIsLoading(false)

@@ -1,4 +1,5 @@
 const PubModel = require('../models/pubModel');
+const { isPlsqlBusinessError, cleanPlsqlMessage } = require('../utils/plsqlErrors');
 
 const getPublications = async (req, res) => {
     try {
@@ -87,4 +88,37 @@ const deletePublication = async (req, res) => {
     }
 };
 
-module.exports = { getPublications, getPublication, addPublication, deletePublication };
+// Editorial decision (Admin / Manager only). The database itself refuses
+// this unless the publication is currently 'Under Review' or 'Resubmitted'
+// (APPROVE_PUBLICATION / REJECT_PUBLICATION, database/procedures_functions.sql).
+const approvePublication = async (req, res) => {
+    try {
+        const pubId = Number(req.params.id);
+        await PubModel.approvePublication(pubId);
+        const updated = await PubModel.getPublicationById(pubId);
+        return res.status(200).json({ success: true, message: 'Publication approved', data: updated });
+    } catch (error) {
+        if (isPlsqlBusinessError(error)) {
+            return res.status(400).json({ success: false, message: cleanPlsqlMessage(error) });
+        }
+        console.error('Error approving publication:', error);
+        return res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+};
+
+const rejectPublication = async (req, res) => {
+    try {
+        const pubId = Number(req.params.id);
+        await PubModel.rejectPublication(pubId);
+        const updated = await PubModel.getPublicationById(pubId);
+        return res.status(200).json({ success: true, message: 'Publication rejected', data: updated });
+    } catch (error) {
+        if (isPlsqlBusinessError(error)) {
+            return res.status(400).json({ success: false, message: cleanPlsqlMessage(error) });
+        }
+        console.error('Error rejecting publication:', error);
+        return res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+};
+
+module.exports = { getPublications, getPublication, addPublication, deletePublication, approvePublication, rejectPublication };

@@ -1,8 +1,16 @@
 const jwt = require('jsonwebtoken');
 const config = require('../config/env');
+const UserModel = require('../models/userModel');
 
 /**
  * Requires a valid Bearer token and populates req.user with { id, role, email }.
+ * Also rejects tokens issued BEFORE the user's most recent password reset —
+ * without this, RESET_PASSWORD would change the database row but every
+ * already-issued JWT would keep working right up until its 8h expiry,
+ * which defeats the point of a password reset (e.g. after a suspected
+ * compromise). The token's `pwd` claim is the PASSWORD_CHANGED_AT value
+ * at the moment it was issued; if the live value has moved on, the
+ * session is stale and must re-authenticate.
  */
 const verifyToken = (req, res, next) => {
     const header = req.headers.authorization || req.headers.Authorization || '';
@@ -15,7 +23,7 @@ const verifyToken = (req, res, next) => {
         });
     }
 
-    jwt.verify(token, config.jwt.secret, (err, decoded) => {
+    jwt.verify(token, config.jwt.secret, async (err, decoded) => {
         if (err) {
             const expired = err.name === 'TokenExpiredError';
             return res.status(401).json({
@@ -24,6 +32,21 @@ const verifyToken = (req, res, next) => {
                     ? '401 Unauthorized: Session expired, please log in again'
                     : '401 Unauthorized: Invalid token',
             });
+        }
+
+        try {
+            const currentPwdChangedAt = await UserModel.getPasswordChangedAt(Number(decoded.id));
+            const currentTimestamp = currentPwdChangedAt ? new Date(currentPwdChangedAt).getTime() : 0;
+
+            if (Number(decoded.pwd || 0) !== currentTimestamp) {
+                return res.status(401).json({
+                    success: false,
+                    message: '401 Unauthorized: Your password was changed. Please log in again.',
+                });
+            }
+        } catch (dbErr) {
+            console.error('Error checking password-change invalidation:', dbErr);
+            return res.status(500).json({ success: false, message: 'Internal server error' });
         }
 
         req.user = { ...decoded, id: Number(decoded.id) };

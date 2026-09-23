@@ -22,6 +22,7 @@ const grantRoutes = require('./routes/grantRoutes');
 const awardRoutes = require('./routes/awardRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 const moderationRoutes = require('./routes/moderationRoutes');
+const dashboardRoutes = require('./routes/dashboardRoutes');
 
 const app = express();
 
@@ -74,6 +75,7 @@ app.use('/api/grants', grantRoutes);
 app.use('/api/awards', awardRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/moderation', moderationRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 // ---------------------------------------------------------------
 // 404 + error handling (must be last)

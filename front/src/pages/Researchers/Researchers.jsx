@@ -54,13 +54,13 @@ function Researchers() {
           HEADER
       ====================================================== */}
 
-      <section className="rounded-2xl bg-base-100 p-6 shadow-sm">
+      <section className="rounded-2xl bg-white p-6 shadow-sm">
 
         <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-center">
 
           <div>
 
-            <p className="mb-2 text-sm font-semibold text-primary">
+            <p className="mb-2 text-sm font-semibold text-indigo-600">
               Research Community
             </p>
 
@@ -68,7 +68,7 @@ function Researchers() {
               Researchers
             </h1>
 
-            <p className="mt-2 text-sm text-base-content/60">
+            <p className="mt-2 text-sm text-slate-500">
               Discover researchers and potential collaborators.
             </p>
 
@@ -93,7 +93,7 @@ function Researchers() {
           SEARCH & FILTER
       ====================================================== */}
 
-      <section className="rounded-2xl bg-base-100 p-4 shadow-sm">
+      <section className="rounded-2xl bg-white p-4 shadow-sm">
 
         <div className="flex flex-col gap-3 md:flex-row">
 
@@ -103,7 +103,7 @@ function Researchers() {
 
             <Search
               size={19}
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-base-content/40"
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
             />
 
             <input
@@ -136,11 +136,11 @@ function Researchers() {
           RESEARCHERS
       ====================================================== */}
 
-      <section className="rounded-2xl bg-base-100 shadow-sm">
+      <section className="rounded-2xl bg-white shadow-sm">
 
         {/* Section Header */}
 
-        <div className="border-b border-base-300 p-6">
+        <div className="border-b border-slate-200 p-6">
 
           <div className="flex items-center justify-between">
 
@@ -150,7 +150,7 @@ function Researchers() {
                 Research Community
               </h2>
 
-              <p className="mt-1 text-sm text-base-content/60">
+              <p className="mt-1 text-sm text-slate-500">
                 Researchers available in the RPMS system.
               </p>
 
@@ -169,7 +169,7 @@ function Researchers() {
         {/* Content States: Loading, Empty, or Populated Grid */}
 
         {isLoading ? (
-          <div className="flex min-h-[380px] items-center justify-center px-6 text-center text-sm text-base-content/60">
+          <div className="flex min-h-[380px] items-center justify-center px-6 text-center text-sm text-slate-500">
             Loading researchers from database...
           </div>
         ) : error ? (
@@ -179,7 +179,7 @@ function Researchers() {
         ) : filteredResearchers.length === 0 ? (
           <div className="flex min-h-[380px] flex-col items-center justify-center px-6 text-center">
 
-            <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+            <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-indigo-600">
 
               <Users size={30} />
 
@@ -191,7 +191,7 @@ function Researchers() {
             </h3>
 
 
-            <p className="mt-2 max-w-md text-sm leading-6 text-base-content/60">
+            <p className="mt-2 max-w-md text-sm leading-6 text-slate-500">
 
               Researcher profiles will appear here once
               researchers are registered and their information
@@ -215,17 +215,17 @@ function Researchers() {
         ) : (
           <div className="grid gap-4 p-6 sm:grid-cols-2 lg:grid-cols-3">
             {filteredResearchers.map((res) => (
-              <div key={res.ID} className="rounded-xl border border-base-300 p-5 shadow-sm flex flex-col justify-between">
+              <div key={res.ID} className="rounded-xl border border-slate-200 p-5 shadow-sm flex flex-col justify-between">
                 <div>
-                  <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                  <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-indigo-600">
                     <Users size={20} />
                   </div>
                   <h3 className="font-bold text-lg">{res.FULL_NAME}</h3>
-                  <p className="text-xs text-base-content/50 mt-1">{res.EMAIL}</p>
-                  <p className="mt-3 text-sm text-base-content/70">
+                  <p className="text-xs text-slate-400 mt-1">{res.EMAIL}</p>
+                  <p className="mt-3 text-sm text-slate-600">
                     <span className="font-semibold">Department:</span> {res.DEPARTMENT || 'Not specified'}
                   </p>
-                  <p className="mt-1 text-sm text-base-content/70 font-mono text-xs">
+                  <p className="mt-1 text-sm text-slate-600 font-mono text-xs">
                     <span className="font-semibold">ORCID:</span> {res.ORCID || 'N/A'}
                   </p>
                 </div>

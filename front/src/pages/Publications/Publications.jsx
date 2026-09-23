@@ -6,9 +6,11 @@ import {
   Filter,
   Plus,
   Trash2,
+  CheckCircle2,
+  XCircle,
 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
-import { apiGet, apiPost, apiDelete, asList } from '../../lib/api'
+import { apiGet, apiPost, apiPut, apiDelete, asList } from '../../lib/api'
 
 function Publications() {
   const [publications, setPublications] = useState([])
@@ -38,6 +40,13 @@ function Publications() {
   const currentUserId = user?.ID ?? user?.id ?? null
   const canDelete = (pub) =>
     isAuthenticated && (Number(pub.USER_ID) === Number(currentUserId) || role === 'Admin')
+
+  // Editorial decisions: Admin/Manager only, and only while the database
+  // would actually accept the transition (APPROVE_PUBLICATION /
+  // REJECT_PUBLICATION both require 'Under Review' or 'Resubmitted').
+  const canDecide = (pub) =>
+    (role === 'Admin' || role === 'Manager') &&
+    ['Under Review', 'Resubmitted'].includes(pub.CONFIRMATION_STATUS)
 
   const loadPublications = useCallback(() => {
     return apiGet('/api/publications', token)
@@ -107,6 +116,27 @@ function Publications() {
     }
   }
 
+  const handleApprove = async (id) => {
+    try {
+      const result = await apiPut(`/api/publications/${id}/approve`, {}, token)
+      setPublications((prev) => prev.map((p) => (p.ID === id ? { ...p, ...(result.data || {}) } : p)))
+    } catch (err) {
+      console.error('Error approving publication:', err)
+      setError(err.message)
+    }
+  }
+
+  const handleReject = async (id) => {
+    if (!window.confirm('Reject this publication?')) return
+    try {
+      const result = await apiPut(`/api/publications/${id}/reject`, {}, token)
+      setPublications((prev) => prev.map((p) => (p.ID === id ? { ...p, ...(result.data || {}) } : p)))
+    } catch (err) {
+      console.error('Error rejecting publication:', err)
+      setError(err.message)
+    }
+  }
+
   // Filter publications based on active search input
   const filteredPublications = publications.filter(pub => {
     const query = activeQuery.toLowerCase()
@@ -119,14 +149,14 @@ function Publications() {
   })
 
   return (
-    <main className="min-h-screen bg-base-200">
+    <main className="min-h-screen bg-slate-50">
 
       <section className="mx-auto max-w-7xl px-5 py-16 lg:px-8">
 
         {/* Header */}
         <div className="mb-10 flex flex-col justify-between gap-5 sm:flex-row sm:items-center">
           <div>
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 text-sm font-medium text-primary">
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 text-sm font-medium text-indigo-600">
               <BookOpen size={16} />
               Research Publications
             </div>
@@ -135,7 +165,7 @@ function Publications() {
               Browse Publications
             </h1>
 
-            <p className="mt-4 max-w-2xl text-base-content/60">
+            <p className="mt-4 max-w-2xl text-slate-500">
               Discover academic publications, research papers and scholarly
               work available through the Research & Publication Management
               System.
@@ -160,10 +190,10 @@ function Publications() {
 
 
         {/* Search Form */}
-        <form onSubmit={handleSearchSubmit} className="mb-10 rounded-2xl border border-base-300 bg-base-100 p-5 shadow-sm">
+        <form onSubmit={handleSearchSubmit} className="mb-10 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <div className="flex flex-col gap-3 md:flex-row">
             <label className="input input-bordered flex flex-1 items-center gap-3">
-              <Search size={18} className="text-base-content/40" />
+              <Search size={18} className="text-slate-400" />
               <input
                 type="text"
                 value={searchInput}
@@ -194,19 +224,19 @@ function Publications() {
         )}
 
         {isLoading ? (
-          <div className="rounded-2xl border border-dashed border-base-300 bg-base-100 p-16 text-center">
-            <p className="text-sm text-base-content/50">Loading publications from database...</p>
+          <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-16 text-center">
+            <p className="text-sm text-slate-400">Loading publications from database...</p>
           </div>
         ) : filteredPublications.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-base-300 bg-base-100 p-16 text-center">
+          <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-16 text-center">
             <BookOpen
               size={48}
-              className="mx-auto mb-5 text-base-content/30"
+              className="mx-auto mb-5 text-slate-300"
             />
             <h2 className="text-xl font-semibold">
               No publications to display yet
             </h2>
-            <p className="mx-auto mt-2 max-w-md text-sm text-base-content/50">
+            <p className="mx-auto mt-2 max-w-md text-sm text-slate-400">
               Publications will appear here once researchers start adding
               research to RPMS.
             </p>
@@ -214,35 +244,45 @@ function Publications() {
         ) : (
           <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
             {filteredPublications.map((pub) => (
-              <div key={pub.ID} className="rounded-2xl border border-base-300 bg-base-100 p-6 shadow-sm flex flex-col justify-between">
+              <div key={pub.ID} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm flex flex-col justify-between">
                 <div>
                   <div className="mb-3 flex items-center justify-between">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-indigo-600">
                       <BookOpen size={20} />
                     </div>
                     <span className="badge badge-ghost text-xs">
                       {pub.CONFIRMATION_STATUS || 'Pending'}
                     </span>
                   </div>
-                  <h2 className="text-lg font-semibold text-base-content">{pub.TITLE}</h2>
-                  <p className="mt-2 text-sm text-base-content/60 line-clamp-3">{pub.ABSTRACT || 'No abstract provided.'}</p>
+                  <h2 className="text-lg font-semibold text-slate-900">{pub.TITLE}</h2>
+                  <p className="mt-2 text-sm text-slate-500 line-clamp-3">{pub.ABSTRACT || 'No abstract provided.'}</p>
                 </div>
                 <div>
-                  <div className="mt-4 pt-3 border-t border-base-100 text-xs text-base-content/50 flex justify-between">
+                  <div className="mt-4 pt-3 border-t border-slate-100 text-xs text-slate-400 flex justify-between">
                     <span>Views: {pub.TOTAL_VIEWS || 0}</span>
                     <span>Downloads: {pub.TOTAL_DOWNLOADS || 0}</span>
                   </div>
-                  <div className="mt-2 pt-2 border-t border-base-200 flex items-center justify-between text-xs text-base-content/50">
+                  <div className="mt-2 pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
                     <span>DOI: {pub.DOI || 'N/A'}</span>
-                    <span className="font-medium text-primary">{pub.AUTHOR || 'Author'}</span>
+                    <span className="font-medium text-indigo-600">{pub.AUTHOR || 'Author'}</span>
                   </div>
-                  {canDelete(pub) && (
-                    <div className="mt-3 flex justify-end">
+                  <div className="mt-3 flex justify-end gap-2">
+                    {canDecide(pub) && (
+                      <>
+                        <button onClick={() => handleApprove(pub.ID)} className="btn btn-ghost btn-xs text-emerald-600 gap-1">
+                          <CheckCircle2 size={14} /> Approve
+                        </button>
+                        <button onClick={() => handleReject(pub.ID)} className="btn btn-ghost btn-xs text-amber-600 gap-1">
+                          <XCircle size={14} /> Reject
+                        </button>
+                      </>
+                    )}
+                    {canDelete(pub) && (
                       <button onClick={() => handleDeletePublication(pub.ID)} className="btn btn-ghost btn-xs text-error gap-1">
                         <Trash2 size={14} /> Delete
                       </button>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
@@ -256,7 +296,7 @@ function Publications() {
       ====================================================== */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <form onSubmit={handleAddPublication} className="w-full max-w-md rounded-2xl bg-base-100 p-6 shadow-xl space-y-4">
+          <form onSubmit={handleAddPublication} className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl space-y-4">
             <h2 className="text-xl font-bold">Submit New Publication</h2>
 
             {formError && (

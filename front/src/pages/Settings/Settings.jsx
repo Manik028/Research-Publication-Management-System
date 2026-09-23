@@ -38,7 +38,7 @@ function Settings() {
   // ACCOUNT SETTINGS & AUTH CONTEXT
   // =====================================================
 
-  const { user, token, updateUser } = useAuth()
+  const { user, token, updateUser, logout } = useAuth()
   const storedPreferences = readPreferences()
 
   // Initialised straight from the session so there is no flash of placeholder
@@ -67,6 +67,63 @@ function Settings() {
 
   const [language, setLanguage] = useState(storedPreferences.language || 'English')
 
+  // =====================================================
+  // CHANGE PASSWORD (Phase 9 — real implementation, replaces the old
+  // "coming soon" alert)
+  // =====================================================
+  const [showChangePassword, setShowChangePassword] = useState(false)
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmNewPassword, setConfirmNewPassword] = useState('')
+  const [changePwdError, setChangePwdError] = useState('')
+  const [isChangingPassword, setIsChangingPassword] = useState(false)
+
+  // =====================================================
+  // TWO-FACTOR AUTHENTICATION TOGGLE
+  // =====================================================
+  const [twoFactorEnabled, setTwoFactorEnabled] = useState(Boolean(user?.TWO_FACTOR_ENABLED))
+  const [isTogglingTwoFactor, setIsTogglingTwoFactor] = useState(false)
+
+  const handleToggleTwoFactor = async () => {
+    const next = !twoFactorEnabled
+    setIsTogglingTwoFactor(true)
+    try {
+      await apiPut('/api/auth/two-factor', { enabled: next }, token)
+      setTwoFactorEnabled(next)
+      updateUser({ TWO_FACTOR_ENABLED: next ? 1 : 0 })
+    } catch (err) {
+      console.error('Failed to update two-factor setting:', err)
+      setMessage(err.message || 'Failed to update two-factor authentication.')
+      setIsError(true)
+    } finally {
+      setIsTogglingTwoFactor(false)
+    }
+  }
+
+  const handleChangePassword = async (e) => {
+    e.preventDefault()
+    setChangePwdError('')
+
+    if (newPassword !== confirmNewPassword) {
+      setChangePwdError('New password and confirmation do not match.')
+      return
+    }
+
+    setIsChangingPassword(true)
+    try {
+      await apiPut('/api/auth/change-password', { currentPassword, newPassword }, token)
+      // The token this session is using is now invalid (RESET_PASSWORD
+      // bumped PASSWORD_CHANGED_AT), so the only correct move is to log
+      // the user out and have them sign back in with the new password.
+      logout()
+    } catch (err) {
+      console.error('Failed to change password:', err)
+      setChangePwdError(err.message || 'Failed to change password.')
+    } finally {
+      setIsChangingPassword(false)
+    }
+  }
+
   const [saved, setSaved] = useState(false)
   const userId = user?.ID ?? user?.id ?? null
   const [message, setMessage] = useState('')
@@ -75,15 +132,17 @@ function Settings() {
 
 
   // Apply the selected daisyUI theme to the document.
+  //
+  // RPMS currently only ships ONE fully-designed theme (light) — every page
+  // was built and tested against it. DaisyUI's built-in "dark" theme uses
+  // different color tokens (base-100/base-content/etc.) that several pages
+  // rely on, and switching to it produced illegible dark-text-on-dark-
+  // background UI throughout the app. Rather than leave that trap in place,
+  // this always applies "light" no matter what the user picks here or what
+  // their OS prefers — the theme picker below is left in place for when a
+  // real dark theme gets built, but it doesn't do anything destructive yet.
   useEffect(() => {
-    const resolved =
-      theme === 'system'
-        ? window.matchMedia('(prefers-color-scheme: dark)').matches
-          ? 'dark'
-          : 'light'
-        : theme
-
-    document.documentElement.setAttribute('data-theme', resolved)
+    document.documentElement.setAttribute('data-theme', 'light')
   }, [theme])
 
 
@@ -664,7 +723,7 @@ function Settings() {
 
               <button
                 type="button"
-                onClick={() => alert("Password reset functionality integration")}
+                onClick={() => setShowChangePassword(true)}
                 className="flex w-full items-center gap-4 rounded-2xl border border-slate-200 p-4 text-left transition hover:border-indigo-200 hover:bg-indigo-50/40"
               >
 
@@ -692,6 +751,41 @@ function Settings() {
                   size={18}
                   className="text-slate-400"
                 />
+
+              </button>
+
+
+              <button
+                type="button"
+                onClick={handleToggleTwoFactor}
+                disabled={isTogglingTwoFactor}
+                className="flex w-full items-center gap-4 rounded-2xl border border-slate-200 p-4 text-left transition hover:border-indigo-200 hover:bg-indigo-50/40 disabled:opacity-60"
+              >
+
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-600">
+
+                  <ShieldCheck size={18} />
+
+                </div>
+
+
+                <div className="flex-1">
+
+                  <h3 className="text-sm font-semibold text-slate-800">
+                    Two-Factor Authentication
+                  </h3>
+
+                  <p className="mt-1 text-xs text-slate-500">
+                    {twoFactorEnabled
+                      ? 'Enabled — a code is emailed to you at every sign-in.'
+                      : 'Disabled — get an email code as a second step at login.'}
+                  </p>
+
+                </div>
+
+                <div className={`badge ${twoFactorEnabled ? 'badge-success' : 'badge-ghost'} gap-1`}>
+                  {isTogglingTwoFactor ? '...' : twoFactorEnabled ? 'On' : 'Off'}
+                </div>
 
               </button>
 
@@ -957,6 +1051,88 @@ function Settings() {
         </div>
 
       </div>
+
+
+      {/* =====================================================
+          CHANGE PASSWORD MODAL
+      ===================================================== */}
+      {showChangePassword && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <form
+            onSubmit={handleChangePassword}
+            className="w-full max-w-md space-y-4 rounded-2xl bg-white p-6 shadow-xl"
+          >
+            <h2 className="text-xl font-bold text-slate-900">Change Password</h2>
+            <p className="text-sm text-slate-500">
+              You'll be signed out after this and need to log in again with your new password.
+            </p>
+
+            <div>
+              <label htmlFor="current-password" className="label text-sm font-semibold text-slate-700">
+                Current password
+              </label>
+              <input
+                id="current-password"
+                type="password"
+                required
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                className="input input-bordered w-full"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="new-password" className="label text-sm font-semibold text-slate-700">
+                New password
+              </label>
+              <input
+                id="new-password"
+                type="password"
+                required
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className="input input-bordered w-full"
+              />
+              <p className="mt-1 text-xs text-slate-400">
+                At least 8 characters, with uppercase, lowercase, a number and a special character.
+              </p>
+            </div>
+
+            <div>
+              <label htmlFor="confirm-new-password" className="label text-sm font-semibold text-slate-700">
+                Confirm new password
+              </label>
+              <input
+                id="confirm-new-password"
+                type="password"
+                required
+                value={confirmNewPassword}
+                onChange={(e) => setConfirmNewPassword(e.target.value)}
+                className="input input-bordered w-full"
+              />
+            </div>
+
+            {changePwdError && (
+              <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-600">
+                {changePwdError}
+              </div>
+            )}
+
+            <div className="flex justify-end gap-3 border-t border-slate-100 pt-4">
+              <button
+                type="button"
+                onClick={() => { setShowChangePassword(false); setChangePwdError(''); setCurrentPassword(''); setNewPassword(''); setConfirmNewPassword('') }}
+                className="btn btn-ghost"
+              >
+                Cancel
+              </button>
+              <button type="submit" disabled={isChangingPassword} className="btn btn-primary">
+                {isChangingPassword ? 'Changing...' : 'Change Password'}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
 
 
     </div>

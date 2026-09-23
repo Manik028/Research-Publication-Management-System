@@ -5,9 +5,11 @@ import {
   Search,
   SlidersHorizontal,
   FileText,
+  CheckCircle2,
+  XCircle,
 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
-import { apiGet, apiPost, asList } from '../../lib/api'
+import { apiGet, apiPost, apiPut, asList } from '../../lib/api'
 
 
 function DashboardPublications() {
@@ -19,12 +21,13 @@ function DashboardPublications() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [form, setForm] = useState({ title: '', abstract: '', doi: '' })
 
-  const { token } = useAuth()
+  const { token, role } = useAuth()
 
-  // This page only ever showed the current user's work, so it now asks the
-  // backend for exactly that (?mine=true) instead of filtering client-side.
+  // Managers/Admins need to see and act on everyone's submissions, not just
+  // their own, so this now loads the full list — same data the public
+  // /publications page shows — rather than filtering to ?mine=true.
   const loadPublications = useCallback(() => {
-    return apiGet('/api/publications?mine=true', token)
+    return apiGet('/api/publications', token)
       .then((result) => setPublications(asList(result)))
       .catch((err) => {
         console.error('Failed to fetch publications:', err)
@@ -33,13 +36,10 @@ function DashboardPublications() {
       .finally(() => setIsLoading(false))
   }, [token])
 
-  // Fetch publications from your Node.js backend on load
   useEffect(() => {
     loadPublications()
   }, [loadPublications])
 
-  // Creating a publication used to run on window.prompt(), which can't
-  // validate input and is blocked in some browsers. It now uses a real form.
   const handleAddPublication = async (e) => {
     e.preventDefault()
     if (!form.title.trim() || !form.abstract.trim()) return
@@ -70,8 +70,32 @@ function DashboardPublications() {
     }
   }
 
-  // Filter publications based on live search input
-  const filteredPublications = publications.filter(pub => 
+  const canDecide = (pub) =>
+    (role === 'Admin' || role === 'Manager') &&
+    ['Under Review', 'Resubmitted'].includes(pub.CONFIRMATION_STATUS)
+
+  const handleApprove = async (id) => {
+    try {
+      const result = await apiPut(`/api/publications/${id}/approve`, {}, token)
+      setPublications((prev) => prev.map((p) => (p.ID === id ? { ...p, ...(result.data || {}) } : p)))
+    } catch (err) {
+      console.error('Error approving publication:', err)
+      setError(err.message)
+    }
+  }
+
+  const handleReject = async (id) => {
+    if (!window.confirm('Reject this publication?')) return
+    try {
+      const result = await apiPut(`/api/publications/${id}/reject`, {}, token)
+      setPublications((prev) => prev.map((p) => (p.ID === id ? { ...p, ...(result.data || {}) } : p)))
+    } catch (err) {
+      console.error('Error rejecting publication:', err)
+      setError(err.message)
+    }
+  }
+
+  const filteredPublications = publications.filter(pub =>
     pub.TITLE?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     pub.ABSTRACT?.toLowerCase().includes(searchQuery.toLowerCase())
   )
@@ -80,64 +104,42 @@ function DashboardPublications() {
 
     <div className="mx-auto max-w-7xl space-y-6">
 
-
       {/* =========================================
           PAGE HEADER
       ========================================== */}
 
-      <section className="relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 px-6 py-7 shadow-xl shadow-black/10 sm:px-8">
+      <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
 
-        {/* Decorative glow */}
-
-        <div className="pointer-events-none absolute -right-20 -top-20 h-48 w-48 rounded-full bg-indigo-600/10 blur-3xl" />
-
-        <div className="pointer-events-none absolute -bottom-20 left-1/3 h-40 w-40 rounded-full bg-violet-600/10 blur-3xl" />
-
-
-        <div className="relative flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
 
           <div>
 
             <div className="mb-3 flex items-center gap-2">
-
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-400">
-
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
                 <BookOpen size={19} />
-
               </div>
-
-              <span className="text-sm font-semibold text-indigo-400">
+              <span className="text-sm font-semibold text-indigo-600">
                 Research Workspace
               </span>
-
             </div>
 
-
-            <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+            <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
               Publications
             </h1>
 
-
-            <p className="mt-2 max-w-xl text-sm leading-6 text-slate-400">
+            <p className="mt-2 max-w-xl text-sm leading-6 text-slate-500">
               Manage, organize and track your academic research
               publications from one place.
             </p>
 
           </div>
 
-
-          <button 
+          <button
             onClick={() => setIsModalOpen(true)}
-            className="group flex h-11 items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 text-sm font-semibold text-white shadow-lg shadow-indigo-600/20 transition-all duration-200 hover:bg-indigo-500 hover:shadow-indigo-500/30 active:scale-[0.98]"
+            className="btn btn-primary gap-2 self-start md:self-auto"
           >
-
-            <Plus
-              size={18}
-              className="transition-transform duration-200 group-hover:rotate-90"
-            />
-
+            <Plus size={18} />
             New Publication
-
           </button>
 
         </div>
@@ -149,38 +151,27 @@ function DashboardPublications() {
           SEARCH + FILTER
       ========================================== */}
 
-      <section className="rounded-2xl border border-slate-800 bg-slate-900 p-4 shadow-lg shadow-black/10">
+      <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
 
         <div className="flex flex-col gap-3 lg:flex-row">
 
-          {/* Search */}
-
           <div className="relative flex-1">
-
             <Search
               size={19}
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
             />
-
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search publications by title or abstract..."
-              className="h-12 w-full rounded-xl border border-slate-700 bg-slate-950 pl-11 pr-4 text-sm text-slate-200 outline-none transition placeholder:text-slate-600 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
+              className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 pl-11 pr-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-100"
             />
-
           </div>
 
-
-          {/* Filter */}
-
-          <button className="flex h-12 items-center justify-center gap-2 rounded-xl border border-slate-700 bg-slate-950 px-5 text-sm font-medium text-slate-300 transition hover:border-slate-600 hover:bg-slate-800">
-
+          <button className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-700 transition hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-600">
             <SlidersHorizontal size={17} />
-
             Filters
-
           </button>
 
         </div>
@@ -192,42 +183,33 @@ function DashboardPublications() {
           PUBLICATION CONTENT
       ========================================== */}
 
-      <section className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 shadow-lg shadow-black/10">
+      <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
 
-
-        {/* Section header */}
-
-        <div className="flex flex-col gap-2 border-b border-slate-800 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-2 border-b border-slate-200 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
 
           <div>
-
-            <h2 className="text-lg font-semibold text-white">
-              Your Publications
+            <h2 className="text-lg font-semibold text-slate-900">
+              All Publications
             </h2>
-
             <p className="mt-1 text-sm text-slate-500">
-              Research works associated with your account.
+              Every publication currently in the RPMS system.
             </p>
-
           </div>
 
-
-          <span className="rounded-full border border-slate-700 bg-slate-950 px-3 py-1 text-xs font-medium text-slate-400">
+          <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-600">
             {filteredPublications.length} publications
           </span>
 
         </div>
 
-
-        {/* Content State: Loading, Empty, or Populated List */}
         {error && (
-          <div className="mx-6 mt-4 rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm font-medium text-rose-400">
+          <div className="mx-6 mt-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-600">
             {error}
           </div>
         )}
 
         {isLoading ? (
-          <div className="flex min-h-[380px] items-center justify-center px-6 py-12 text-slate-400">
+          <div className="flex min-h-[380px] items-center justify-center px-6 py-12 text-slate-500">
             Loading publications from database...
           </div>
         ) : filteredPublications.length === 0 ? (
@@ -235,51 +217,54 @@ function DashboardPublications() {
 
             <div className="max-w-md text-center">
 
-
-              {/* Icon */}
-
-              <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-2xl border border-indigo-500/10 bg-indigo-500/10 text-indigo-400">
-
+              <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-500">
                 <FileText size={34} />
-
               </div>
 
-
-              <h3 className="mt-6 text-xl font-semibold text-white">
+              <h3 className="mt-6 text-xl font-semibold text-slate-900">
                 No publications yet
               </h3>
 
-
               <p className="mx-auto mt-3 max-w-sm text-sm leading-6 text-slate-500">
-                You haven't added any research publications yet.
-                Once you submit your research, your publications
-                will appear here.
+                No research publications exist in the system yet.
+                Once someone submits one, it will appear here.
               </p>
 
-
-              <button 
+              <button
                 onClick={() => setIsModalOpen(true)}
-                className="group mt-7 inline-flex h-11 items-center gap-2 rounded-xl bg-indigo-600 px-5 text-sm font-semibold text-white shadow-lg shadow-indigo-600/20 transition-all duration-200 hover:bg-indigo-500 hover:shadow-indigo-500/30 active:scale-[0.98]"
+                className="btn btn-primary mt-7 gap-2"
               >
-
-                <Plus
-                  size={18}
-                  className="transition-transform duration-200 group-hover:rotate-90"
-                />
-
+                <Plus size={18} />
                 Add Your First Publication
-
               </button>
 
             </div>
 
           </div>
         ) : (
-          <div className="divide-y divide-slate-800 px-6 py-4">
+          <div className="divide-y divide-slate-100 px-6 py-4">
             {filteredPublications.map((pub) => (
-              <div key={pub.ID} className="py-4">
-                <h3 className="text-base font-semibold text-white">{pub.TITLE}</h3>
-                <p className="mt-1 text-sm text-slate-400">{pub.ABSTRACT || 'No abstract provided.'}</p>
+              <div key={pub.ID} className="flex items-start justify-between gap-4 py-4">
+                <div className="min-w-0">
+                  <div className="mb-1 flex items-center gap-2">
+                    <span className="badge badge-ghost text-xs">
+                      {pub.CONFIRMATION_STATUS || 'Draft'}
+                    </span>
+                    <span className="text-xs text-slate-400">by {pub.AUTHOR || 'Unknown'}</span>
+                  </div>
+                  <h3 className="text-base font-semibold text-slate-900">{pub.TITLE}</h3>
+                  <p className="mt-1 text-sm text-slate-500">{pub.ABSTRACT || 'No abstract provided.'}</p>
+                </div>
+                {canDecide(pub) && (
+                  <div className="flex shrink-0 gap-2">
+                    <button onClick={() => handleApprove(pub.ID)} className="btn btn-ghost btn-xs text-emerald-600 gap-1">
+                      <CheckCircle2 size={14} /> Approve
+                    </button>
+                    <button onClick={() => handleReject(pub.ID)} className="btn btn-ghost btn-xs text-amber-600 gap-1">
+                      <XCircle size={14} /> Reject
+                    </button>
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -293,15 +278,15 @@ function DashboardPublications() {
       ========================================== */}
 
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <form
             onSubmit={handleAddPublication}
-            className="w-full max-w-md space-y-4 rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl"
+            className="w-full max-w-md space-y-4 rounded-2xl bg-white p-6 shadow-xl"
           >
-            <h2 className="text-xl font-bold text-white">New Publication</h2>
+            <h2 className="text-xl font-bold text-slate-900">New Publication</h2>
 
             <div>
-              <label htmlFor="pub-title" className="mb-1.5 block text-sm font-semibold text-slate-300">
+              <label htmlFor="pub-title" className="label text-sm font-semibold text-slate-700">
                 Title
               </label>
               <input
@@ -311,12 +296,12 @@ function DashboardPublications() {
                 value={form.title}
                 onChange={(e) => setForm({ ...form, title: e.target.value })}
                 placeholder="Publication title"
-                className="h-11 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 text-sm text-slate-200 outline-none focus:border-indigo-500"
+                className="input input-bordered w-full"
               />
             </div>
 
             <div>
-              <label htmlFor="pub-abstract" className="mb-1.5 block text-sm font-semibold text-slate-300">
+              <label htmlFor="pub-abstract" className="label text-sm font-semibold text-slate-700">
                 Abstract
               </label>
               <textarea
@@ -326,12 +311,12 @@ function DashboardPublications() {
                 value={form.abstract}
                 onChange={(e) => setForm({ ...form, abstract: e.target.value })}
                 placeholder="Provide the manuscript abstract..."
-                className="w-full rounded-xl border border-slate-700 bg-slate-950 p-4 text-sm text-slate-200 outline-none focus:border-indigo-500"
+                className="textarea textarea-bordered w-full"
               />
             </div>
 
             <div>
-              <label htmlFor="pub-doi" className="mb-1.5 block text-sm font-semibold text-slate-300">
+              <label htmlFor="pub-doi" className="label text-sm font-semibold text-slate-700">
                 DOI (optional)
               </label>
               <input
@@ -340,22 +325,22 @@ function DashboardPublications() {
                 value={form.doi}
                 onChange={(e) => setForm({ ...form, doi: e.target.value })}
                 placeholder="e.g. 10.1016/j.jqsrt.2020.107123"
-                className="h-11 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 text-sm text-slate-200 outline-none focus:border-indigo-500"
+                className="input input-bordered w-full"
               />
             </div>
 
-            <div className="flex justify-end gap-3 border-t border-slate-800 pt-4">
+            <div className="flex justify-end gap-3 border-t border-slate-100 pt-4">
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="rounded-xl px-4 py-2 text-sm font-semibold text-slate-300 hover:bg-slate-800"
+                className="btn btn-ghost"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="rounded-xl bg-indigo-600 px-5 py-2 text-sm font-semibold text-white hover:bg-indigo-500 disabled:opacity-60"
+                className="btn btn-primary"
               >
                 {isSubmitting ? 'Saving...' : 'Save Publication'}
               </button>

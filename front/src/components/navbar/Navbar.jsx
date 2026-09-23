@@ -32,7 +32,7 @@ function Navbar() {
 
   return (
 
-    <header className="sticky top-0 z-50 border-b border-base-300 bg-base-100/95 backdrop-blur">
+    <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur">
 
       {/* =========================================
           MAIN NAVBAR
@@ -64,7 +64,7 @@ function Navbar() {
               RPMS
             </h1>
 
-            <p className="hidden text-[10px] font-medium text-base-content/50 sm:block">
+            <p className="hidden text-[10px] font-medium text-slate-400 sm:block">
               Research & Publication Management
             </p>
 
@@ -154,7 +154,7 @@ function Navbar() {
 
           {isAuthenticated ? (
             <>
-              <span className="mr-1 hidden text-sm font-medium text-base-content/60 xl:inline">
+              <span className="mr-1 hidden text-sm font-medium text-slate-500 xl:inline">
                 {user?.FULL_NAME}
               </span>
 
@@ -230,7 +230,7 @@ function Navbar() {
 
       {mobileMenuOpen && (
 
-        <div className="border-t border-base-300 bg-base-100 lg:hidden">
+        <div className="border-t border-slate-200 bg-white lg:hidden">
 
           <nav className="mx-auto flex max-w-7xl flex-col gap-1 px-5 py-4">
 
@@ -305,7 +305,7 @@ function Navbar() {
 
             {/* Divider */}
 
-            <div className="my-2 border-t border-base-300" />
+            <div className="my-2 border-t border-slate-200" />
 
 
             {isAuthenticated ? (

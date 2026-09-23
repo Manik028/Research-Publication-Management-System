@@ -7,9 +7,10 @@ import {
   CheckCircle2,
   AlertCircle,
   Send,
+  UserPlus,
 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
-import { apiGet, apiPut, asList } from '../../lib/api'
+import { apiGet, apiPost, apiPut, asList } from '../../lib/api'
 
 
 function PeerReview() {
@@ -28,7 +29,20 @@ function PeerReview() {
   const [error, setError] = useState('')
   const [formError, setFormError] = useState('')
 
-  const { token } = useAuth()
+  const { token, role } = useAuth()
+
+  // Assign Reviewer modal state (Admin / Manager only — the assignment
+  // itself is validated server-side by the ASSIGN_REVIEWER procedure:
+  // no self-review, no duplicate assignment, no more than 3 reviewers,
+  // deadline must be future. This form just collects the input.)
+  const [showAssignModal, setShowAssignModal] = useState(false)
+  const [publications, setPublications] = useState([])
+  const [researchers, setResearchers] = useState([])
+  const [assignPublicationId, setAssignPublicationId] = useState('')
+  const [assignReviewerId, setAssignReviewerId] = useState('')
+  const [assignDeadline, setAssignDeadline] = useState('')
+  const [assignError, setAssignError] = useState('')
+  const [isAssigning, setIsAssigning] = useState(false)
 
   // Captured once so the "needs attention" calculation stays pure across
   // renders instead of reading the clock on every pass.
@@ -55,6 +69,59 @@ function PeerReview() {
       cancelled = true
     }
   }, [token])
+
+  // Publications + researchers for the Assign Reviewer dropdowns.
+  // Only fetched for Admin/Manager, since only they can see this form.
+  useEffect(() => {
+    if (role !== 'Admin' && role !== 'Manager') return
+    let cancelled = false
+
+    Promise.all([apiGet('/api/publications', token), apiGet('/api/users', token)])
+      .then(([pubRes, userRes]) => {
+        if (cancelled) return
+        setPublications(asList(pubRes))
+        setResearchers(asList(userRes))
+      })
+      .catch((err) => console.error('Failed to load publications/researchers:', err))
+
+    return () => {
+      cancelled = true
+    }
+  }, [token, role])
+
+  const handleAssignSubmit = async (e) => {
+    e.preventDefault()
+    setAssignError('')
+    setIsAssigning(true)
+
+    try {
+      await apiPost(
+        '/api/reviews',
+        {
+          publicationId: Number(assignPublicationId),
+          reviewerId: Number(assignReviewerId),
+          deadline: assignDeadline,
+        },
+        token,
+      )
+
+      // Refresh the assignment list so the new one shows up immediately.
+      const result = await apiGet('/api/reviews', token)
+      setReviews(asList(result))
+
+      setShowAssignModal(false)
+      setAssignPublicationId('')
+      setAssignReviewerId('')
+      setAssignDeadline('')
+    } catch (err) {
+      // err.message here is the clean, readable text from ASSIGN_REVIEWER
+      // itself (e.g. "A reviewer cannot be assigned to review their own
+      // publication.") — see utils/plsqlErrors.js on the backend.
+      setAssignError(err.message)
+    } finally {
+      setIsAssigning(false)
+    }
+  }
 
   // Handle submitting review assessment to backend PUT endpoint
   const handleGradeSubmit = async (e) => {
@@ -147,6 +214,17 @@ function PeerReview() {
               your peer-review activities.
             </p>
           </div>
+
+          {(role === 'Admin' || role === 'Manager') && (
+            <button
+              type="button"
+              onClick={() => setShowAssignModal(true)}
+              className="btn btn-primary gap-2 self-start"
+            >
+              <UserPlus size={18} />
+              Assign Reviewer
+            </button>
+          )}
         </div>
       </section>
 
@@ -414,6 +492,83 @@ function PeerReview() {
               <button type="button" className="btn btn-ghost" onClick={() => setSelectedReview(null)}>Cancel</button>
               <button type="submit" disabled={isSubmitting} className="btn btn-primary gap-2">
                 <Send size={16}/> {isSubmitting ? 'Submitting...' : 'Submit Review'}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* =====================================================
+          MODAL FOR ASSIGNING A REVIEWER (Admin / Manager only)
+      ====================================================== */}
+      {showAssignModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <form onSubmit={handleAssignSubmit} className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl space-y-4">
+            <h2 className="text-xl font-bold text-slate-900">Assign Reviewer</h2>
+            <p className="text-sm text-slate-500">
+              The database will refuse this if the reviewer authored the
+              paper, is already assigned, or the publication already has
+              3 reviewers.
+            </p>
+
+            {assignError && (
+              <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-600">
+                {assignError}
+              </div>
+            )}
+
+            <div>
+              <label className="label text-sm font-semibold text-slate-700">Publication</label>
+              <select
+                required
+                value={assignPublicationId}
+                onChange={(e) => setAssignPublicationId(e.target.value)}
+                className="select select-bordered w-full"
+              >
+                <option value="" disabled>Select a publication...</option>
+                {publications.map((p) => (
+                  <option key={p.ID} value={p.ID}>{p.TITLE}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="label text-sm font-semibold text-slate-700">Reviewer</label>
+              <select
+                required
+                value={assignReviewerId}
+                onChange={(e) => setAssignReviewerId(e.target.value)}
+                className="select select-bordered w-full"
+              >
+                <option value="" disabled>Select a researcher...</option>
+                {researchers.map((u) => (
+                  <option key={u.ID} value={u.ID}>{u.FULL_NAME}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="label text-sm font-semibold text-slate-700">Deadline</label>
+              <input
+                type="date"
+                required
+                value={assignDeadline}
+                onChange={(e) => setAssignDeadline(e.target.value)}
+                min={new Date().toISOString().split('T')[0]}
+                className="input input-bordered w-full"
+              />
+            </div>
+
+            <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+              <button
+                type="button"
+                className="btn btn-ghost"
+                onClick={() => { setShowAssignModal(false); setAssignError('') }}
+              >
+                Cancel
+              </button>
+              <button type="submit" disabled={isAssigning} className="btn btn-primary gap-2">
+                <UserPlus size={16} /> {isAssigning ? 'Assigning...' : 'Assign Reviewer'}
               </button>
             </div>
           </form>

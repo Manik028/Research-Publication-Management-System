@@ -65,6 +65,19 @@ const PubModel = {
         );
         return result.rowsAffected;
     },
+
+    // Calls APPROVE_PUBLICATION / REJECT_PUBLICATION (database/procedures_functions.sql)
+    // instead of a raw UPDATE — Oracle enforces the status is currently
+    // 'Under Review' or 'Resubmitted' before allowing the transition, and
+    // TRG_PUBLICATION_STATUS_GUARD (Block 11) double-checks the transition
+    // itself is legal no matter which path triggered the UPDATE.
+    approvePublication: async (pubId) => {
+        await executeQuery(`BEGIN APPROVE_PUBLICATION(:pubId); END;`, { pubId });
+    },
+
+    rejectPublication: async (pubId) => {
+        await executeQuery(`BEGIN REJECT_PUBLICATION(:pubId); END;`, { pubId });
+    },
 };
 
 module.exports = PubModel;

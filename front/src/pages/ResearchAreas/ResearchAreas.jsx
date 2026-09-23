@@ -67,24 +67,24 @@ export default function ResearchAreas() {
         </div>
       )}
 
-      {isLoading && <p className="text-base-content/50">Loading research areas...</p>}
+      {isLoading && <p className="text-slate-400">Loading research areas...</p>}
 
       {!isLoading && areas.length === 0 && !error && (
-        <p className="text-base-content/50">No research areas have been added yet.</p>
+        <p className="text-slate-400">No research areas have been added yet.</p>
       )}
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {areas.map(area => (
-          <div key={area.ID} className="rounded-xl border border-base-300 bg-base-100 p-5 shadow-sm">
+          <div key={area.ID} className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
             <h3 className="font-bold text-lg text-secondary">{area.AREA_NAME}</h3>
-            <p className="mt-2 text-sm text-base-content/70">{area.DESCRIPTION}</p>
+            <p className="mt-2 text-sm text-slate-600">{area.DESCRIPTION}</p>
           </div>
         ))}
       </div>
 
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <form onSubmit={handleCreate} className="w-full max-w-md rounded-2xl bg-base-100 p-6">
+          <form onSubmit={handleCreate} className="w-full max-w-md rounded-2xl bg-white p-6">
             <h2 className="mb-4 text-xl font-bold">Add Research Area</h2>
             <input type="text" placeholder="Area Name (e.g., Quantum Physics)" required className="input input-bordered mb-3 w-full"
               value={formData.name}

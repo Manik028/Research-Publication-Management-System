@@ -47,13 +47,13 @@ function About() {
   }, [token])
 
   return (
-    <main className="min-h-screen bg-base-200">
+    <main className="min-h-screen bg-slate-50">
 
       <section className="mx-auto max-w-7xl px-5 py-16 lg:px-8">
 
         <div className="max-w-3xl">
 
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 text-sm font-medium text-primary">
+          <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 text-sm font-medium text-indigo-600">
 
             <FlaskConical size={16} />
 
@@ -67,7 +67,7 @@ function About() {
           </h1>
 
 
-          <p className="mt-6 text-lg leading-8 text-base-content/60">
+          <p className="mt-6 text-lg leading-8 text-slate-500">
             RPMS is a centralized academic platform designed to help
             researchers manage research activities, publications,
             collaborations and peer-review workflows.
@@ -119,9 +119,9 @@ function Feature({ icon, title, text, stat }) {
 
   return (
 
-    <div className="rounded-2xl border border-base-300 bg-base-100 p-6 shadow-sm">
+    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
 
-      <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
+      <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-indigo-600">
 
         {icon}
 
@@ -133,14 +133,14 @@ function Feature({ icon, title, text, stat }) {
           {title}
         </h2>
         {stat !== undefined && (
-          <span className="rounded-md bg-primary/10 px-2 py-0.5 text-xs font-bold text-primary">
+          <span className="rounded-md bg-primary/10 px-2 py-0.5 text-xs font-bold text-indigo-600">
             {stat}
           </span>
         )}
       </div>
 
 
-      <p className="mt-2 text-sm leading-6 text-base-content/50">
+      <p className="mt-2 text-sm leading-6 text-slate-400">
         {text}
       </p>
 

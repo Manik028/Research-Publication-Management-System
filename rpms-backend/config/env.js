@@ -56,6 +56,15 @@ const config = {
         secret: process.env.JWT_SECRET,
         expiresIn: process.env.JWT_EXPIRES_IN || '8h',
     },
+    // Optional: password reset and 2FA emails fall back to console logging
+    // (see services/emailService.js) if SMTP_HOST isn't set.
+    smtp: {
+        host: process.env.SMTP_HOST || null,
+        port: Number(process.env.SMTP_PORT) || 587,
+        user: process.env.SMTP_USER || null,
+        password: process.env.SMTP_PASSWORD || null,
+        from: process.env.EMAIL_FROM || 'RPMS <no-reply@rpms.local>',
+    },
     corsOrigin: process.env.CORS_ORIGIN || '*',
 };
 

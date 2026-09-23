@@ -35,8 +35,8 @@ function Dashboard() {
     let cancelled = false
 
     // A failure in one panel shouldn't blank the whole dashboard, so each
-    // request resolves to an empty list on error and the banner reports it.
-    const safe = (path) =>
+    // request resolves to a safe fallback on error and the banner reports it.
+    const safeList = (path) =>
       apiGet(path, token)
         .then(asList)
         .catch((err) => {
@@ -45,19 +45,26 @@ function Dashboard() {
           return []
         })
 
-    Promise.all([
-      safe('/api/publications'),
-      safe('/api/projects'),
-      safe('/api/users'),
-      safe('/api/files'),
-    ]).then(([pubs, projects, users, files]) => {
+    // Summary counts come from ONE Oracle query (V_DASHBOARD_SUMMARY, see
+    // database/views.sql) instead of fetching entire publication/project/
+    // user/file tables just to read their .length.
+    const safeSummary = () =>
+      apiGet('/api/dashboard', token)
+        .then((res) => res?.data || null)
+        .catch((err) => {
+          console.error('Dashboard: /api/dashboard failed', err)
+          setError((prev) => prev || err.message)
+          return null
+        })
+
+    Promise.all([safeSummary(), safeList('/api/publications')]).then(([summary, pubs]) => {
       if (cancelled) return
 
       setStats({
-        publications: pubs.length,
-        projects: projects.length,
-        researchers: users.length,
-        documents: files.length,
+        publications: summary ? summary.TOTAL_PUBLICATIONS : pubs.length,
+        projects: summary ? summary.TOTAL_PROJECTS : '—',
+        researchers: summary ? summary.TOTAL_RESEARCHERS : '—',
+        documents: summary ? summary.TOTAL_DOCUMENTS : '—',
       })
 
       setRecentPublications(pubs.slice(0, 3))
