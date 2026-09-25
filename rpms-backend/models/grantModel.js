@@ -52,13 +52,22 @@ const GrantModel = {
         return result.rows;
     },
 
+    // Calls ADD_PROJECT_GRANT (database/procedures_functions.sql) instead
+    // of a raw INSERT — the procedure re-validates the project and funding
+    // body exist and the amount is positive at the database level too,
+    // not just in this controller.
     create: async ({ amount, projectId, bodyId }) => {
-        const sql = `
-            INSERT INTO GRANT_FUNDING (AMOUNT, PROJECT_ID, BODY_ID)
-            VALUES (:amount, :projectId, :bodyId)
-            RETURNING GRANT_ID INTO :newId
-        `;
-        return insertReturningId(sql, { amount, projectId, bodyId });
+        await executeQuery(
+            `BEGIN ADD_PROJECT_GRANT(:projectId, :bodyId, :amount); END;`,
+            { projectId, bodyId, amount }
+        );
+        const result = await executeQuery(
+            `SELECT GRANT_ID FROM GRANT_FUNDING
+             WHERE PROJECT_ID = :projectId AND BODY_ID = :bodyId
+             ORDER BY GRANT_ID DESC FETCH FIRST 1 ROWS ONLY`,
+            { projectId, bodyId }
+        );
+        return result.rows[0]?.GRANT_ID || null;
     },
 
     remove: async (id) => {

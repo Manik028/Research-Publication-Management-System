@@ -5,10 +5,12 @@ const {
     addResearchArea,
     deleteResearchArea,
 } = require('../controllers/researchAreaController');
-const { verifyToken, authorizeRole } = require('../middleware/authMiddleware');
+const { verifyToken, optionalAuth, authorizeRole } = require('../middleware/authMiddleware');
 
-// GET /api/research-areas
-router.get('/', verifyToken, getResearchAreas);
+// GET /api/research-areas - public reference data (Institutions/Venues are
+// already public the same way). Needed by the anonymous-visible Publications
+// filter panel, not just the logged-in dashboard's Research Areas page.
+router.get('/', optionalAuth, getResearchAreas);
 
 // POST /api/research-areas - Admin or Manager only
 router.post('/', verifyToken, authorizeRole('Admin', 'Manager'), addResearchArea);

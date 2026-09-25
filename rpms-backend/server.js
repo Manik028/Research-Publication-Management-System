@@ -23,6 +23,8 @@ const awardRoutes = require('./routes/awardRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 const moderationRoutes = require('./routes/moderationRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
+const auditLogRoutes = require('./routes/auditLogRoutes');
+const reportsRoutes = require('./routes/reportsRoutes');
 
 const app = express();
 
@@ -76,6 +78,8 @@ app.use('/api/awards', awardRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/moderation', moderationRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/audit-log', auditLogRoutes);
+app.use('/api/reports', reportsRoutes);
 
 // ---------------------------------------------------------------
 // 404 + error handling (must be last)

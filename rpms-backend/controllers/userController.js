@@ -88,4 +88,19 @@ const getRoles = async (req, res) => {
     }
 };
 
-module.exports = { getUsers, getUserById, updateUser, getRoles };
+// Real implementation of "Find Collaborators" (previously a placeholder
+// alert). Both filters are optional query params: ?areaId=&institutionId=
+const findCollaborators = async (req, res) => {
+    try {
+        const areaId = req.query.areaId ? Number(req.query.areaId) : null;
+        const institutionId = req.query.institutionId ? Number(req.query.institutionId) : null;
+
+        const data = await UserModel.findCollaborators({ areaId, institutionId });
+        return res.status(200).json({ success: true, data });
+    } catch (error) {
+        console.error('Error searching collaborators:', error);
+        return res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+};
+
+module.exports = { getUsers, getUserById, updateUser, getRoles, findCollaborators };

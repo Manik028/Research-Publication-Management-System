@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { Link } from 'react-router-dom'
 import {
   BookOpen,
   Plus,
@@ -252,7 +253,9 @@ function DashboardPublications() {
                     </span>
                     <span className="text-xs text-slate-400">by {pub.AUTHOR || 'Unknown'}</span>
                   </div>
-                  <h3 className="text-base font-semibold text-slate-900">{pub.TITLE}</h3>
+                  <Link to={`/publications/${pub.ID}`} className="text-base font-semibold text-slate-900 hover:text-indigo-600">
+                    {pub.TITLE}
+                  </Link>
                   <p className="mt-1 text-sm text-slate-500">{pub.ABSTRACT || 'No abstract provided.'}</p>
                 </div>
                 {canDecide(pub) && (

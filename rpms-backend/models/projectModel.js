@@ -67,6 +67,40 @@ const ProjectModel = {
         );
         return result.rowsAffected;
     },
+
+    // ---- PROJECT MEMBERSHIP (Block 5 / PROJECT_MEMBER) --------------------
+
+    getMembers: async (projectId) => {
+        const result = await executeQuery(
+            `SELECT pm.PROJECT_ID, pm.USER_ID, u.FULL_NAME, u.EMAIL,
+                    pm.MEMBER_ROLE, pm.JOIN_DATE
+             FROM PROJECT_MEMBER pm
+             JOIN "USER" u ON u.USER_ID = pm.USER_ID
+             WHERE pm.PROJECT_ID = :projectId
+             ORDER BY pm.JOIN_DATE`,
+            { projectId }
+        );
+        return result.rows;
+    },
+
+    // Calls ADD_PROJECT_MEMBER (database/procedures_functions.sql) instead
+    // of a raw INSERT — the procedure validates the project and user both
+    // exist before writing, and duplicate membership is still caught by
+    // PROJECT_MEMBER's own composite primary key either way.
+    addMember: async (projectId, userId, role) => {
+        await executeQuery(
+            `BEGIN ADD_PROJECT_MEMBER(:projectId, :userId, :role); END;`,
+            { projectId, userId, role: role || 'Researcher' }
+        );
+    },
+
+    removeMember: async (projectId, userId) => {
+        const result = await executeQuery(
+            `DELETE FROM PROJECT_MEMBER WHERE PROJECT_ID = :projectId AND USER_ID = :userId`,
+            { projectId, userId }
+        );
+        return result.rowsAffected;
+    },
 };
 
 module.exports = ProjectModel;

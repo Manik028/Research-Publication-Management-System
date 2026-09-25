@@ -14,6 +14,43 @@ const USER_SELECT = `
 `;
 
 const UserModel = {
+    // Powers the real "Find Collaborators" feature (replaces the old
+    // placeholder alert). Filters are optional and combine with AND;
+    // calling with neither still returns every researcher, each with
+    // their research areas aggregated via LISTAGG.
+    findCollaborators: async ({ areaId, institutionId }) => {
+        const conditions = [];
+        const binds = {};
+
+        if (areaId) {
+            conditions.push(
+                `u.USER_ID IN (SELECT USER_ID FROM USER_RESEARCH_AREA WHERE AREA_ID = :areaId)`
+            );
+            binds.areaId = areaId;
+        }
+        if (institutionId) {
+            conditions.push(`u.INSTITUTION_ID = :institutionId`);
+            binds.institutionId = institutionId;
+        }
+        const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+
+        const sql = `
+            SELECT u.USER_ID AS ID, u.FULL_NAME, u.EMAIL, u.DEPARTMENT, u.ORCID,
+                   i.NAME AS INSTITUTION_NAME,
+                   (SELECT LISTAGG(ra.AREA_NAME, ', ') WITHIN GROUP (ORDER BY ra.AREA_NAME)
+                    FROM USER_RESEARCH_AREA ura JOIN RESEARCH_AREA ra ON ra.AREA_ID = ura.AREA_ID
+                    WHERE ura.USER_ID = u.USER_ID) AS RESEARCH_AREAS,
+                   (SELECT COUNT(*) FROM AUTHOR_PUBLICATION ap WHERE ap.USER_ID = u.USER_ID) AS PUBLICATION_COUNT
+            FROM "USER" u
+            LEFT JOIN INSTITUTION i ON i.INSTITUTION_ID = u.INSTITUTION_ID
+            ${where}
+            ORDER BY u.FULL_NAME
+        `;
+
+        const result = await executeQuery(sql, binds);
+        return result.rows;
+    },
+
     // Includes the password hash - only used by the login flow.
     getUserByEmail: async (email) => {
         const sql = `

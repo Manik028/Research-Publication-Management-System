@@ -18,7 +18,7 @@ function Publications() {
   const [error, setError] = useState('')
   const [formError, setFormError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
-  
+
   // Modal and form states matching the PUBLICATION table
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [title, setTitle] = useState('')
@@ -28,9 +28,19 @@ function Publications() {
   // Read search query parameter from URL (e.g. from Home page search)
   const [searchParams, setSearchParams] = useSearchParams()
   const initialQuery = searchParams.get('search') || ''
-  
+
   const [searchInput, setSearchInput] = useState(initialQuery)
   const [activeQuery, setActiveQuery] = useState(initialQuery)
+
+  // ---- ADVANCED FILTERS (real server-side query, not decorative) --------
+  const [showFilters, setShowFilters] = useState(false)
+  const [researchAreas, setResearchAreas] = useState([])
+  const [filterStatus, setFilterStatus] = useState('')
+  const [filterVenueType, setFilterVenueType] = useState('')
+  const [filterAreaId, setFilterAreaId] = useState('')
+  const [filterDateFrom, setFilterDateFrom] = useState('')
+  const [filterDateTo, setFilterDateTo] = useState('')
+  const [isFiltering, setIsFiltering] = useState(false)
 
   const { token, user, role, isAuthenticated } = useAuth()
 
@@ -61,6 +71,42 @@ function Publications() {
   useEffect(() => {
     loadPublications()
   }, [loadPublications])
+
+  useEffect(() => {
+    apiGet('/api/research-areas', token)
+      .then((r) => setResearchAreas(asList(r)))
+      .catch(() => { })
+  }, [token])
+
+  const handleApplyFilters = async () => {
+    setIsFiltering(true)
+    setError('')
+    try {
+      const params = new URLSearchParams()
+      if (filterStatus) params.set('status', filterStatus)
+      if (filterVenueType) params.set('venueType', filterVenueType)
+      if (filterAreaId) params.set('areaId', filterAreaId)
+      if (filterDateFrom) params.set('dateFrom', filterDateFrom)
+      if (filterDateTo) params.set('dateTo', filterDateTo)
+
+      const result = await apiGet(`/api/publications?${params.toString()}`, token)
+      setPublications(asList(result))
+    } catch (err) {
+      console.error('Filter search failed:', err)
+      setError(err.message)
+    } finally {
+      setIsFiltering(false)
+    }
+  }
+
+  const handleClearFilters = () => {
+    setFilterStatus('')
+    setFilterVenueType('')
+    setFilterAreaId('')
+    setFilterDateFrom('')
+    setFilterDateTo('')
+    loadPublications()
+  }
 
   const handleSearchSubmit = (e) => {
     e.preventDefault()
@@ -208,11 +254,70 @@ function Publications() {
               Search
             </button>
 
-            <button type="button" className="btn btn-outline gap-2">
+            <button
+              type="button"
+              onClick={() => setShowFilters((s) => !s)}
+              className={`btn gap-2 ${showFilters ? 'btn-primary' : 'btn-outline'}`}
+            >
               <Filter size={18} />
               Filters
             </button>
           </div>
+
+          {showFilters && (
+            <div className="mt-4 grid gap-3 border-t border-slate-100 pt-4 sm:grid-cols-2 lg:grid-cols-5">
+              <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="select select-bordered select-sm">
+                <option value="">Any status</option>
+                <option value="Draft">Draft</option>
+                <option value="Submitted">Submitted</option>
+                <option value="Under Review">Under Review</option>
+                <option value="Revision Required">Revision Required</option>
+                <option value="Resubmitted">Resubmitted</option>
+                <option value="Accepted">Accepted</option>
+                <option value="Rejected">Rejected</option>
+                <option value="Published">Published</option>
+                <option value="Archived">Archived</option>
+              </select>
+
+              <select value={filterVenueType} onChange={(e) => setFilterVenueType(e.target.value)} className="select select-bordered select-sm">
+                <option value="">Conference or Journal</option>
+                <option value="Conference">Conference</option>
+                <option value="Journal">Journal</option>
+              </select>
+
+              <select value={filterAreaId} onChange={(e) => setFilterAreaId(e.target.value)} className="select select-bordered select-sm">
+                <option value="">Any research area</option>
+                {researchAreas.map((a) => (
+                  <option key={a.ID} value={a.ID}>{a.AREA_NAME}</option>
+                ))}
+              </select>
+
+              <input
+                type="date"
+                value={filterDateFrom}
+                onChange={(e) => setFilterDateFrom(e.target.value)}
+                className="input input-bordered input-sm"
+                title="Submitted after"
+              />
+
+              <input
+                type="date"
+                value={filterDateTo}
+                onChange={(e) => setFilterDateTo(e.target.value)}
+                className="input input-bordered input-sm"
+                title="Submitted before"
+              />
+
+              <div className="col-span-full flex gap-2">
+                <button type="button" onClick={handleApplyFilters} disabled={isFiltering} className="btn btn-primary btn-sm">
+                  {isFiltering ? 'Applying...' : 'Apply Filters'}
+                </button>
+                <button type="button" onClick={handleClearFilters} className="btn btn-ghost btn-sm">
+                  Clear
+                </button>
+              </div>
+            </div>
+          )}
         </form>
 
 
@@ -254,7 +359,9 @@ function Publications() {
                       {pub.CONFIRMATION_STATUS || 'Pending'}
                     </span>
                   </div>
-                  <h2 className="text-lg font-semibold text-slate-900">{pub.TITLE}</h2>
+                  <Link to={`/publications/${pub.ID}`} className="text-lg font-semibold text-slate-900 hover:text-indigo-600">
+                    {pub.TITLE}
+                  </Link>
                   <p className="mt-2 text-sm text-slate-500 line-clamp-3">{pub.ABSTRACT || 'No abstract provided.'}</p>
                 </div>
                 <div>
@@ -304,25 +411,25 @@ function Publications() {
                 {formError}
               </div>
             )}
-            
+
             <div>
               <label className="label text-sm font-semibold">Title</label>
-              <input 
-                type="text" 
-                required 
-                placeholder="Publication title" 
+              <input
+                type="text"
+                required
+                placeholder="Publication title"
                 value={title}
                 onChange={e => setTitle(e.target.value)}
-                className="input input-bordered w-full" 
+                className="input input-bordered w-full"
               />
             </div>
 
             <div>
               <label className="label text-sm font-semibold">Abstract</label>
-              <textarea 
-                rows="4" 
-                required 
-                placeholder="Provide manuscript abstract..." 
+              <textarea
+                rows="4"
+                required
+                placeholder="Provide manuscript abstract..."
                 value={abstract}
                 onChange={e => setAbstract(e.target.value)}
                 className="textarea textarea-bordered w-full"
@@ -331,12 +438,12 @@ function Publications() {
 
             <div>
               <label className="label text-sm font-semibold">DOI (Optional)</label>
-              <input 
-                type="text" 
-                placeholder="e.g. 10.1016/j.jqsrt.2020.107123" 
+              <input
+                type="text"
+                placeholder="e.g. 10.1016/j.jqsrt.2020.107123"
                 value={doi}
                 onChange={e => setDoi(e.target.value)}
-                className="input input-bordered w-full" 
+                className="input input-bordered w-full"
               />
             </div>
 

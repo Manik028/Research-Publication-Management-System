@@ -15,6 +15,8 @@ import {
   Award,
   Bell,
   Layers,
+  History,
+  BarChart3,
 } from 'lucide-react'
 
 import { NavLink } from 'react-router-dom'
@@ -97,6 +99,11 @@ function Sidebar() {
       path: '/dashboard/grants',
       icon: DollarSign,
     })
+    managementNavigationItems.push({
+      name: 'Reports',
+      path: '/dashboard/reports',
+      icon: BarChart3,
+    })
   }
   if (role === 'Admin') {
     managementNavigationItems.push({
@@ -104,6 +111,11 @@ function Sidebar() {
       path: '/dashboard/moderation',
       icon: ShieldAlert,
       isError: true,
+    })
+    managementNavigationItems.push({
+      name: 'Audit Log',
+      path: '/dashboard/audit-log',
+      icon: History,
     })
   }
 
@@ -155,10 +167,9 @@ function Sidebar() {
           transition-transform
           duration-300
 
-          ${
-            mobileOpen
-              ? 'translate-x-0'
-              : '-translate-x-full'
+          ${mobileOpen
+            ? 'translate-x-0'
+            : '-translate-x-full'
           }
 
           lg:translate-x-0
@@ -244,10 +255,9 @@ function Sidebar() {
                     font-medium
                     transition-all
 
-                    ${
-                      isActive
-                        ? 'bg-primary text-primary-content shadow-md shadow-primary/20'
-                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                    ${isActive
+                      ? 'bg-primary text-primary-content shadow-md shadow-primary/20'
+                      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                     }
                     `
                   }
@@ -299,14 +309,13 @@ function Sidebar() {
                         font-medium
                         transition-all
 
-                        ${
-                          isActive
-                            ? item.isError 
-                              ? 'bg-error text-error-content shadow-md shadow-error/20'
-                              : 'bg-primary text-primary-content shadow-md shadow-primary/20'
-                            : item.isError
-                              ? 'text-error hover:bg-error/10'
-                              : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                        ${isActive
+                          ? item.isError
+                            ? 'bg-error text-error-content shadow-md shadow-error/20'
+                            : 'bg-primary text-primary-content shadow-md shadow-primary/20'
+                          : item.isError
+                            ? 'text-error hover:bg-error/10'
+                            : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                         }
                         `
                       }
@@ -349,10 +358,9 @@ function Sidebar() {
                 font-medium
                 transition-all
 
-                ${
-                  isActive
-                    ? 'bg-primary text-primary-content shadow-md shadow-primary/20'
-                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                ${isActive
+                  ? 'bg-primary text-primary-content shadow-md shadow-primary/20'
+                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                 }
                 `
               }
@@ -384,10 +392,9 @@ function Sidebar() {
                 font-medium
                 transition-all
 
-                ${
-                  isActive
-                    ? 'bg-primary text-primary-content shadow-md shadow-primary/20'
-                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                ${isActive
+                  ? 'bg-primary text-primary-content shadow-md shadow-primary/20'
+                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                 }
                 `
               }

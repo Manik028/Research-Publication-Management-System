@@ -16,6 +16,47 @@ function Researchers() {
   const [error, setError] = useState('')
   const { token } = useAuth()
 
+  // ---- FIND COLLABORATORS (real feature, replaces the old placeholder) ----
+  const [showCollabModal, setShowCollabModal] = useState(false)
+  const [researchAreas, setResearchAreas] = useState([])
+  const [institutions, setInstitutions] = useState([])
+  const [collabAreaId, setCollabAreaId] = useState('')
+  const [collabInstitutionId, setCollabInstitutionId] = useState('')
+  const [collabResults, setCollabResults] = useState(null) // null = not searched yet
+  const [isCollabSearching, setIsCollabSearching] = useState(false)
+  const [collabError, setCollabError] = useState('')
+
+  const openCollabModal = () => {
+    setShowCollabModal(true)
+    setCollabResults(null)
+    setCollabError('')
+    if (!researchAreas.length) {
+      apiGet('/api/research-areas', token).then((r) => setResearchAreas(asList(r))).catch(() => { })
+    }
+    if (!institutions.length) {
+      apiGet('/api/institutions', token).then((r) => setInstitutions(asList(r))).catch(() => { })
+    }
+  }
+
+  const handleCollabSearch = async (e) => {
+    e.preventDefault()
+    setIsCollabSearching(true)
+    setCollabError('')
+    try {
+      const params = new URLSearchParams()
+      if (collabAreaId) params.set('areaId', collabAreaId)
+      if (collabInstitutionId) params.set('institutionId', collabInstitutionId)
+
+      const result = await apiGet(`/api/users/collaborators?${params.toString()}`, token)
+      setCollabResults(asList(result))
+    } catch (err) {
+      console.error('Collaborator search failed:', err)
+      setCollabError(err.message)
+    } finally {
+      setIsCollabSearching(false)
+    }
+  }
+
   // Fetch users/researchers from your Node.js backend on load with Token Auth
   useEffect(() => {
     let cancelled = false
@@ -39,7 +80,7 @@ function Researchers() {
   }, [token])
 
   // Filter researchers based on live search input (mapped to ERD attributes)
-  const filteredResearchers = researchers.filter(res => 
+  const filteredResearchers = researchers.filter(res =>
     res.FULL_NAME?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     res.EMAIL?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     res.DEPARTMENT?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -76,7 +117,7 @@ function Researchers() {
 
 
           <button
-            onClick={() => alert("Collaborator search tools coming soon!")}
+            onClick={openCollabModal}
             className="btn btn-primary gap-2"
           >
             <Plus size={18} />
@@ -235,6 +276,81 @@ function Researchers() {
         )}
 
       </section>
+
+      {/* =====================================================
+          FIND COLLABORATORS MODAL (real feature)
+      ====================================================== */}
+      {showCollabModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-2xl rounded-2xl bg-white p-6 shadow-xl">
+            <h2 className="mb-1 text-xl font-bold text-slate-900">Find Collaborators</h2>
+            <p className="mb-4 text-sm text-slate-500">
+              Search researchers by research area and/or institution.
+            </p>
+
+            <form onSubmit={handleCollabSearch} className="flex flex-col gap-3 sm:flex-row">
+              <select
+                value={collabAreaId}
+                onChange={(e) => setCollabAreaId(e.target.value)}
+                className="select select-bordered flex-1"
+              >
+                <option value="">Any research area</option>
+                {researchAreas.map((a) => (
+                  <option key={a.ID} value={a.ID}>{a.AREA_NAME}</option>
+                ))}
+              </select>
+
+              <select
+                value={collabInstitutionId}
+                onChange={(e) => setCollabInstitutionId(e.target.value)}
+                className="select select-bordered flex-1"
+              >
+                <option value="">Any institution</option>
+                {institutions.map((i) => (
+                  <option key={i.ID} value={i.ID}>{i.NAME}</option>
+                ))}
+              </select>
+
+              <button type="submit" disabled={isCollabSearching} className="btn btn-primary gap-2">
+                <Search size={16} /> {isCollabSearching ? 'Searching...' : 'Search'}
+              </button>
+            </form>
+
+            {collabError && (
+              <div className="mt-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-600">
+                {collabError}
+              </div>
+            )}
+
+            <div className="mt-4 max-h-80 space-y-2 overflow-y-auto">
+              {collabResults === null ? (
+                <p className="py-8 text-center text-sm text-slate-400">Choose a filter and search to see matching researchers.</p>
+              ) : collabResults.length === 0 ? (
+                <p className="py-8 text-center text-sm text-slate-400">No researchers match those filters.</p>
+              ) : (
+                collabResults.map((r) => (
+                  <div key={r.ID} className="rounded-xl border border-slate-200 p-4">
+                    <div className="flex items-center justify-between">
+                      <p className="font-semibold text-slate-900">{r.FULL_NAME}</p>
+                      <span className="badge badge-ghost text-xs">{r.PUBLICATION_COUNT} publications</span>
+                    </div>
+                    <p className="mt-1 text-xs text-slate-500">
+                      {r.DEPARTMENT || 'No department'} · {r.INSTITUTION_NAME || 'No institution'}
+                    </p>
+                    {r.RESEARCH_AREAS && (
+                      <p className="mt-2 text-xs text-indigo-600">{r.RESEARCH_AREAS}</p>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+
+            <div className="mt-4 flex justify-end border-t border-slate-100 pt-4">
+              <button onClick={() => setShowCollabModal(false)} className="btn btn-ghost">Close</button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
 

@@ -1,5 +1,6 @@
 const GrantModel = require('../models/grantModel');
 const ProjectModel = require('../models/projectModel');
+const { isPlsqlBusinessError, cleanPlsqlMessage } = require('../utils/plsqlErrors');
 
 const getGrants = async (req, res) => {
     try {
@@ -57,7 +58,15 @@ const addGrant = async (req, res) => {
             organizationType
         );
 
-        const newId = await GrantModel.create({ amount, projectId, bodyId });
+        let newId;
+        try {
+            newId = await GrantModel.create({ amount, projectId, bodyId });
+        } catch (dbError) {
+            if (isPlsqlBusinessError(dbError)) {
+                return res.status(400).json({ success: false, message: cleanPlsqlMessage(dbError) });
+            }
+            throw dbError;
+        }
         const created = await GrantModel.getById(newId);
 
         return res.status(201).json({ success: true, message: 'Grant logged successfully', data: created });

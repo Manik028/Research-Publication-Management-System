@@ -10,6 +10,7 @@ import Navbar from './components/navbar/Navbar'
 
 import Home from './pages/Home/Home'
 import Publications from './pages/Publications/Publications'
+import PublicationDetail from './pages/PublicationDetail/PublicationDetail'
 import Conferences from './pages/Conferences/Conferences'
 import Journals from './pages/Journals/Journals'
 import About from './pages/About/About'
@@ -31,6 +32,8 @@ import Notifications from './pages/Notifications/Notifications'
 import Institutions from './pages/Institutions/Institution'
 import ResearchAreas from './pages/ResearchAreas/ResearchAreas'
 import ModerationQueue from './pages/Moderation/ModerationQueue'
+import AuditLog from './pages/AuditLog/AuditLog'
+import Reports from './pages/Reports/Reports'
 
 import ProtectedRoute from './components/auth/ProtectedRoute'
 import RoleGuard from './components/auth/RoleGuard'
@@ -70,6 +73,7 @@ function App() {
           =================================================== */}
           <Route path="/" element={<Home />} />
           <Route path="/publications" element={<Publications />} />
+          <Route path="/publications/:id" element={<PublicationDetail />} />
           <Route path="/conferences" element={<Conferences />} />
           <Route path="/journals" element={<Journals />} />
           <Route path="/about" element={<About />} />
@@ -108,6 +112,22 @@ function App() {
             element={
               <DashboardPage roles={['Admin']}>
                 <ModerationQueue />
+              </DashboardPage>
+            }
+          />
+          <Route
+            path="/dashboard/audit-log"
+            element={
+              <DashboardPage roles={['Admin']}>
+                <AuditLog />
+              </DashboardPage>
+            }
+          />
+          <Route
+            path="/dashboard/reports"
+            element={
+              <DashboardPage roles={['Admin', 'Manager']}>
+                <Reports />
               </DashboardPage>
             }
           />

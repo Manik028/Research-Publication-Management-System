@@ -3,9 +3,27 @@ const { isPlsqlBusinessError, cleanPlsqlMessage } = require('../utils/plsqlError
 
 const getPublications = async (req, res) => {
     try {
+        const { mine, q, status, venueType, areaId, dateFrom, dateTo } = req.query;
+
         // ?mine=true limits the list to the caller's own publications.
-        const pubs = req.query.mine === 'true' && req.user
-            ? await PubModel.getPublicationsByUser(req.user.id)
+        if (mine === 'true' && req.user) {
+            const pubs = await PubModel.getPublicationsByUser(req.user.id);
+            return res.status(200).json({ success: true, data: pubs });
+        }
+
+        // Any filter present -> real server-side search (bind-variable
+        // safe, see PubModel.search). No filters -> the plain full list,
+        // unchanged from before.
+        const hasFilters = q || status || venueType || areaId || dateFrom || dateTo;
+        const pubs = hasFilters
+            ? await PubModel.search({
+                q: q || null,
+                status: status || null,
+                venueType: venueType || null,
+                areaId: areaId ? Number(areaId) : null,
+                dateFrom: dateFrom || null,
+                dateTo: dateTo || null,
+            })
             : await PubModel.getAllPublications();
 
         return res.status(200).json({ success: true, data: pubs });
@@ -17,10 +35,22 @@ const getPublications = async (req, res) => {
 
 const getPublication = async (req, res) => {
     try {
-        const pub = await PubModel.getPublicationById(Number(req.params.id));
+        const pubId = Number(req.params.id);
+        const pub = await PubModel.getFullDetail(pubId);
         if (!pub) {
             return res.status(404).json({ success: false, message: 'Publication not found' });
         }
+
+        // Review status is only meaningful to an author of this paper or
+        // an Admin/Manager — everyone else (including anonymous public
+        // visitors) sees the publication without it.
+        const isAuthor = req.user && pub.AUTHORS.some((a) => Number(a.USER_ID) === Number(req.user.id));
+        const isPrivileged = req.user && (req.user.role === 'Admin' || req.user.role === 'Manager');
+
+        if (isAuthor || isPrivileged) {
+            pub.REVIEWS = await PubModel.getReviewSummary(pubId);
+        }
+
         return res.status(200).json({ success: true, data: pub });
     } catch (error) {
         console.error('Error fetching publication:', error);

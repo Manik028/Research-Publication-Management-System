@@ -1,4 +1,5 @@
 const ProjectModel = require('../models/projectModel');
+const { isPlsqlBusinessError, cleanPlsqlMessage } = require('../utils/plsqlErrors');
 
 const getProjects = async (req, res) => {
     try {
@@ -73,4 +74,63 @@ const deleteProject = async (req, res) => {
     }
 };
 
-module.exports = { getProjects, addProject, deleteProject };
+module.exports = { getProjects, addProject, deleteProject, getMembers, addMember, removeMember };
+
+// ---- PROJECT MEMBERSHIP ----------------------------------------------
+
+async function getMembers(req, res) {
+    try {
+        const projectId = Number(req.params.id);
+        const project = await ProjectModel.getProjectById(projectId);
+        if (!project) {
+            return res.status(404).json({ success: false, message: 'Project not found' });
+        }
+        const data = await ProjectModel.getMembers(projectId);
+        return res.status(200).json({ success: true, data });
+    } catch (error) {
+        console.error('Error fetching project members:', error);
+        return res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+}
+
+async function addMember(req, res) {
+    try {
+        const projectId = Number(req.params.id);
+        const { userId, role } = req.body || {};
+
+        if (!Number.isFinite(Number(userId))) {
+            return res.status(400).json({ success: false, message: 'A valid userId is required' });
+        }
+
+        try {
+            await ProjectModel.addMember(projectId, Number(userId), role);
+        } catch (dbError) {
+            if (isPlsqlBusinessError(dbError)) {
+                return res.status(400).json({ success: false, message: cleanPlsqlMessage(dbError) });
+            }
+            throw dbError;
+        }
+
+        const members = await ProjectModel.getMembers(projectId);
+        return res.status(201).json({ success: true, message: 'Member added', data: members });
+    } catch (error) {
+        console.error('Error adding project member:', error);
+        return res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+}
+
+async function removeMember(req, res) {
+    try {
+        const projectId = Number(req.params.id);
+        const userId = Number(req.params.userId);
+        const rows = await ProjectModel.removeMember(projectId, userId);
+        if (!rows) {
+            return res.status(404).json({ success: false, message: 'Membership not found' });
+        }
+        return res.status(200).json({ success: true, message: 'Member removed' });
+    } catch (error) {
+        console.error('Error removing project member:', error);
+        return res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+}
+

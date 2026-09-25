@@ -7,7 +7,6 @@ import {
   Lock,
   Mail,
   Monitor,
-  Moon,
   Palette,
   Save,
   ShieldCheck,
@@ -274,11 +273,10 @@ function Settings() {
 
         {message && (
           <div
-            className={`mt-4 rounded-xl px-4 py-2 text-sm font-medium ${
-              isError
+            className={`mt-4 rounded-xl px-4 py-2 text-sm font-medium ${isError
                 ? 'border border-rose-200 bg-rose-50 text-rose-600'
                 : 'bg-indigo-50 text-indigo-700'
-            }`}
+              }`}
           >
             {message}
           </div>
@@ -790,13 +788,12 @@ function Settings() {
               </button>
 
 
-              <button
-                type="button"
-                onClick={() => alert("Security review dashboard coming soon")}
-                className="flex w-full items-center gap-4 rounded-2xl border border-slate-200 p-4 text-left transition hover:border-indigo-200 hover:bg-indigo-50/40"
-              >
+              {/* Real security info instead of a "coming soon" alert —
+                  PASSWORD_CHANGED_AT comes straight from the USER row via
+                  /api/auth/login and /api/auth/me. */}
+              <div className="flex w-full items-start gap-4 rounded-2xl border border-slate-200 p-4">
 
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-600">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-600">
 
                   <ShieldCheck size={18} />
 
@@ -810,18 +807,20 @@ function Settings() {
                   </h3>
 
                   <p className="mt-1 text-xs text-slate-500">
-                    Review your account security settings.
+                    Password last changed:{' '}
+                    {user?.PASSWORD_CHANGED_AT
+                      ? new Date(user.PASSWORD_CHANGED_AT).toLocaleString()
+                      : 'Unknown'}
+                  </p>
+
+                  <p className="mt-1 text-xs text-slate-500">
+                    Changing your password automatically signs out every other
+                    device using your account.
                   </p>
 
                 </div>
 
-
-                <ChevronRight
-                  size={18}
-                  className="text-slate-400"
-                />
-
-              </button>
+              </div>
 
             </div>
 
@@ -874,16 +873,12 @@ function Settings() {
               <div className="grid gap-3 sm:grid-cols-3">
 
 
-                {/* Light */}
+                {/* Light — the only theme this app currently ships. Dark/System
+                    were removed rather than left clickable-but-inert; every
+                    page here was designed and tested against Light only. */}
 
-                <button
-                  type="button"
-                  onClick={() => setTheme('light')}
-                  className={`rounded-2xl border p-4 text-left transition ${
-                    theme === 'light'
-                      ? 'border-indigo-500 bg-indigo-50 ring-2 ring-indigo-100'
-                      : 'border-slate-200 hover:border-slate-300'
-                  }`}
+                <div
+                  className="rounded-2xl border border-indigo-500 bg-indigo-50 p-4 text-left ring-2 ring-indigo-100"
                 >
 
                   <Sun
@@ -899,67 +894,14 @@ function Settings() {
                     Bright interface
                   </p>
 
-                </button>
-
-
-
-                {/* Dark */}
-
-                <button
-                  type="button"
-                  onClick={() => setTheme('dark')}
-                  className={`rounded-2xl border p-4 text-left transition ${
-                    theme === 'dark'
-                      ? 'border-indigo-500 bg-indigo-50 ring-2 ring-indigo-100'
-                      : 'border-slate-200 hover:border-slate-300'
-                  }`}
-                >
-
-                  <Moon
-                    size={20}
-                    className="mb-3 text-indigo-600"
-                  />
-
-                  <p className="text-sm font-semibold text-slate-800">
-                    Dark
-                  </p>
-
-                  <p className="mt-1 text-xs text-slate-500">
-                    Dark interface
-                  </p>
-
-                </button>
-
-
-
-                {/* System */}
-
-                <button
-                  type="button"
-                  onClick={() => setTheme('system')}
-                  className={`rounded-2xl border p-4 text-left transition ${
-                    theme === 'system'
-                      ? 'border-indigo-500 bg-indigo-50 ring-2 ring-indigo-100'
-                      : 'border-slate-200 hover:border-slate-300'
-                  }`}
-                >
-
-                  <Monitor
-                    size={20}
-                    className="mb-3 text-slate-600"
-                  />
-
-                  <p className="text-sm font-semibold text-slate-800">
-                    System
-                  </p>
-
-                  <p className="mt-1 text-xs text-slate-500">
-                    Use system preference
-                  </p>
-
-                </button>
+                </div>
 
               </div>
+
+              <p className="mt-3 text-xs text-slate-400">
+                RPMS currently ships one polished theme. A dark theme is planned
+                for a future update rather than offered here half-finished.
+              </p>
 
             </div>
 
@@ -995,21 +937,13 @@ function Settings() {
               </div>
 
 
-              <select
-                value={language}
-                onChange={(event) => setLanguage(event.target.value)}
-                className="h-11 rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm font-medium text-slate-700 outline-none transition focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-100"
-              >
-
-                <option>
-                  English
-                </option>
-
-                <option>
-                  বাংলা
-                </option>
-
-              </select>
+              {/* Only English is actually supported — no translations exist
+                  anywhere in the app, so offering বাংলা as a selectable
+                  option was misleading. A real dropdown returns once
+                  translations actually exist. */}
+              <span className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-medium text-slate-500">
+                English
+              </span>
 
             </div>
 
